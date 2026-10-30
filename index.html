@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Haman English</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#12213B; --ink-2:#1B3054; --paper:#F6F2E9; --paper-2:#FFFFFF;
+  --amber:#C98A2C; --amber-deep:#8F5E12; --teal:#2E6E6B; --teal-deep:#1E4A48;
+  --line:#DED6C2; --text:#12213B; --text-mut:#5B6478; --danger:#B4432E;
+  --bg: var(--paper); --card: var(--paper-2); --fg: var(--text); --fg-mut: var(--text-mut);
+  --border: var(--line); --accent: var(--amber); --accent-fg: var(--amber-deep);
+  --header-fg:#F6F2E9;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:inherit}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){ --bg:#0E1626; --card:#16213A; --fg:#EDE7D9; --fg-mut:#9AA3B8; --border:#28324A; --accent-fg:#E0A94F; --teal-deep:#7FC4C0; --danger:#E3735C; }
+}
+:root[data-theme="dark"]{ --bg:#0E1626; --card:#16213A; --fg:#EDE7D9; --fg-mut:#9AA3B8; --border:#28324A; --accent-fg:#E0A94F; --teal-deep:#7FC4C0; --danger:#E3735C; }
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+html,body{height:100%}
+body{ margin:0; background:var(--bg); color:var(--fg); font-family:'Vazirmatn',sans-serif; line-height:1.9; -webkit-font-smoothing:antialiased; }
+.wrap{max-width:480px;margin:0 auto;padding:0 18px 48px}
+header.top{ background:linear-gradient(180deg,var(--ink) 0%,var(--ink-2) 100%); color:var(--header-fg); padding:22px 18px calc(16px + env(safe-area-inset-top,0px)); margin-bottom:-16px; position:relative; }
+header.top .row{display:flex;justify-content:space-between;align-items:flex-start;max-width:480px;margin:0 auto}
+.brand{font-size:20px;font-weight:700;letter-spacing:.2px}
+.brand small{display:block;font-size:12px;font-weight:400;color:#C9BFA0;margin-top:2px}
+.streak{text-align:left; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.15); border-radius:14px; padding:8px 14px; min-width:64px;}
+.streak .num{font-size:20px;font-weight:700;color:var(--amber)}
+.streak .lbl{font-size:11px;color:#C9BFA0;margin-top:1px}
+.progressbar{height:6px;border-radius:6px;background:rgba(255,255,255,.12);margin-top:16px;overflow:hidden}
+.progressbar > div{height:100%;background:var(--amber);border-radius:6px;transition:width .4s ease}
+.progress-lbl{font-size:12px;color:#C9BFA0;margin-top:6px}
+.tabbar{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;max-width:480px;margin:16px auto 0;background:rgba(255,255,255,.08);border-radius:12px;padding:4px}
+.tabbar button{flex:none;white-space:nowrap;border:none;background:transparent;color:#D9D2BC;font-family:inherit;font-size:14px;font-weight:600;padding:9px 14px;border-radius:9px;cursor:pointer}
+.tabbar button.active{background:var(--amber);color:#241505}
+
+.daily-card{ background:var(--card); border:1px solid var(--border); border-radius:16px; padding:20px; margin-top:20px; box-shadow:0 8px 24px rgba(18,33,59,.12); }
+.daily-eyebrow{font-size:12px;color:var(--accent-fg);font-weight:600;margin-bottom:6px}
+.daily-title{font-size:22px;font-weight:700;margin:0 0 6px}
+.daily-usage{color:var(--fg-mut);font-size:14px;margin:0 0 14px}
+.ex-list{display:flex;flex-direction:column;gap:8px}
+.ex{display:flex;gap:8px;align-items:flex-start;font-size:14px;direction:ltr;text-align:left}
+.ex .mark{flex:none;width:20px;text-align:center;font-weight:700}
+.ex.pos .mark{color:#3E8E5A} .ex.neg .mark{color:var(--danger)} .ex.q .mark{color:var(--accent-fg)}
+.daily-btn{ margin-top:16px; width:100%; padding:12px; border:none; border-radius:10px; background:var(--amber); color:#241505; font-family:inherit; font-size:15px; font-weight:600; cursor:pointer; }
+.daily-btn.done{background:transparent;border:1px solid var(--border);color:var(--fg-mut)}
+
+.section-title{font-size:14px;font-weight:600;color:var(--fg-mut);margin:28px 4px 10px}
+.group{display:flex;flex-direction:column;gap:10px}
+.card{ background:var(--card); border:1px solid var(--border); border-radius:14px; overflow:hidden; }
+.card-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px 16px; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+.card-head .title-wrap{display:flex;align-items:center;gap:10px;min-width:0}
+.dot{flex:none;width:8px;height:8px;border-radius:50%}
+.dot.done{background:var(--amber)} .dot.pending{background:var(--border)}
+.card-head .t{font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chev{flex:none;font-size:13px;color:var(--fg-mut);transition:transform .2s ease}
+.card.open .chev{transform:rotate(180deg)}
+.card-body{max-height:0;overflow:hidden;transition:max-height .25s ease}
+.card.open .card-body{max-height:1200px}
+.card-body-inner{padding:0 16px 16px}
+.usage{color:var(--fg-mut);font-size:13.5px;margin:0 0 12px}
+.mini-btn{ margin-top:4px;font-size:13px;background:transparent;border:1px solid var(--border); color:var(--fg-mut);border-radius:8px;padding:8px 10px;width:100%;font-family:inherit;cursor:pointer; }
+.mini-btn.done{color:var(--accent-fg);border-color:var(--accent-fg)}
+
+.chips{display:flex;gap:8px;overflow-x:auto;padding:16px 0 4px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;font-size:13px;font-family:inherit;padding:7px 14px;border-radius:999px;border:1px solid var(--border);background:var(--card);color:var(--fg-mut);cursor:pointer;white-space:nowrap}
+.chip.active{background:var(--teal);border-color:var(--teal);color:#fff}
+.vcount{font-size:12px;color:var(--fg-mut);margin:4px 4px 14px}
+.vcard{ background:var(--card); border:1px solid var(--border); border-radius:14px; padding:14px 16px; cursor:pointer; }
+.vhead{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.vword{direction:ltr;text-align:left}
+.vword .w{font-size:17px;font-weight:700}
+.vword .ipa{font-size:13px;color:var(--fg-mut);margin-top:2px}
+.vpos{font-size:11px;color:var(--teal-deep);background:rgba(46,110,107,.12);border-radius:6px;padding:2px 7px;flex:none}
+.vbody{max-height:0;overflow:hidden;transition:max-height .25s ease}
+.vcard.open .vbody{max-height:200px}
+.vbody-inner{padding-top:12px;border-top:1px dashed var(--border);margin-top:12px}
+.vfa{font-size:14.5px;margin:0 0 8px}
+.vex{direction:ltr;text-align:left;font-size:13.5px;color:var(--fg-mut);margin:0 0 10px}
+
+.tform{direction:ltr;text-align:left;font-size:13px;background:rgba(46,110,107,.12);border-radius:8px;padding:8px 10px;margin:0 0 12px}
+.warn{font-size:13px;margin-top:12px;color:var(--danger)}
+.tipbox{font-size:13px;margin-top:8px;color:var(--accent-fg)}
+.tl{margin:0;padding:0 18px 12px 0;font-size:13.5px}
+.tl li{margin-bottom:8px}
+
+.qcard{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 16px;margin-bottom:10px}
+.qq{direction:ltr;text-align:left;font-size:14.5px;font-weight:600;margin:0 0 10px}
+.opt{display:block;width:100%;direction:ltr;text-align:left;font-family:inherit;font-size:14px;padding:9px 12px;margin-bottom:6px;border:1px solid var(--border);border-radius:9px;background:transparent;color:var(--fg);cursor:pointer}
+.opt.ok{border-color:#3E8E5A;background:rgba(62,142,90,.18)}
+.opt.bad{border-color:var(--danger);background:rgba(180,67,46,.14)}
+.expl{font-size:13px;color:var(--fg-mut);margin-top:6px}
+.score{font-size:15px;font-weight:600;margin:18px 4px 12px}
+.lbl{font-size:12px;font-weight:600;color:var(--fg-mut);margin:12px 0 4px}
+.hook{font-size:14px;font-weight:600;background:rgba(201,138,44,.16);border-radius:8px;padding:8px 10px}
+footer{text-align:center;color:var(--fg-mut);font-size:12px;margin-top:32px}
+.hidden{display:none}
+</style>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#12213B">
+<link rel="apple-touch-icon" href="icon-192.png">
+</head>
+<body>
+<div id="app"></div>
+<script>
+var TENSES = [
+ {id:'ps',group:'present',fa:'حال ساده',en:'Present Simple',usage:'حقایق ثابت، عادت‌ها، روتین روزانه',ex:[
+   ['pos','She <b>works</b> in a hospital.'],
+   ['neg','She <b>doesn&#39;t work</b> on Sundays.'],
+   ['q','<b>Does</b> she <b>work</b> every day?']]},
+ {id:'pc',group:'present',fa:'حال استمراری',en:'Present Continuous',usage:'کاری در همین لحظه، یا برنامه‌ی نزدیک آینده',ex:[
+   ['pos','I <b>am studying</b> for IELTS right now.'],
+   ['neg','They <b>aren&#39;t watching</b> TV at the moment.'],
+   ['q','<b>Is</b> he <b>coming</b> to the party tonight?']]},
+ {id:'pp',group:'present',fa:'حال کامل',en:'Present Perfect',usage:'تجربه، نتیجه در حال حاضر، کاری که ادامه دارد',ex:[
+   ['pos','I <b>have visited</b> Paris twice.'],
+   ['neg','She <b>hasn&#39;t finished</b> her homework yet.'],
+   ['q','<b>Have</b> you <b>ever tried</b> sushi?']]},
+ {id:'ppc',group:'present',fa:'حال کامل استمراری',en:'Present Perfect Continuous',usage:'تأکید روی تداوم فعالیت تا الان',ex:[
+   ['pos','I <b>have been working</b> here since 2020.'],
+   ['neg','He <b>hasn&#39;t been feeling</b> well lately.'],
+   ['q','<b>Have</b> you <b>been waiting</b> long?']]},
+ {id:'pas',group:'past',fa:'گذشته ساده',en:'Past Simple',usage:'کاری تمام‌شده در زمان مشخص گذشته',ex:[
+   ['pos','She <b>graduated</b> in 2019.'],
+   ['neg','We <b>didn&#39;t go</b> to the concert.'],
+   ['q','<b>Did</b> they <b>arrive</b> on time?']]},
+ {id:'pac',group:'past',fa:'گذشته استمراری',en:'Past Continuous',usage:'کاری در حال انجام در یک لحظه‌ی خاص گذشته',ex:[
+   ['pos','I <b>was cooking</b> when the phone rang.'],
+   ['neg','They <b>weren&#39;t listening</b> during the lecture.'],
+   ['q','What <b>were</b> you <b>doing</b> at 8pm?']]},
+ {id:'pap',group:'past',fa:'گذشته کامل',en:'Past Perfect',usage:'کاری که قبل از یک اتفاق دیگر در گذشته تمام شده',ex:[
+   ['pos','By the time I arrived, she <b>had left</b>.'],
+   ['neg','He <b>hadn&#39;t finished</b> the report before the meeting.'],
+   ['q','<b>Had</b> you <b>ever seen</b> snow before that trip?']]},
+ {id:'papc',group:'past',fa:'گذشته کامل استمراری',en:'Past Perfect Continuous',usage:'تداوم یک فعالیت تا لحظه‌ای مشخص در گذشته',ex:[
+   ['pos','They <b>had been driving</b> for hours before they stopped.'],
+   ['neg','She <b>hadn&#39;t been sleeping</b> well before the exam.'],
+   ['q','<b>Had</b> he <b>been studying</b> long before the test?']]},
+ {id:'fs',group:'future',fa:'آینده ساده',en:'Future Simple',usage:'تصمیم لحظه‌ای، پیش‌بینی، قول',ex:[
+   ['pos','I <b>will call</b> you tomorrow.'],
+   ['neg','It <b>won&#39;t rain</b> this weekend.'],
+   ['q','<b>Will</b> you <b>help</b> me with this?']]},
+ {id:'fc',group:'future',fa:'آینده استمراری',en:'Future Continuous',usage:'کاری در حال انجام در یک لحظه‌ی مشخص آینده',ex:[
+   ['pos','This time next week, I <b>will be traveling</b>.'],
+   ['neg','We <b>won&#39;t be working</b> on Friday.'],
+   ['q','<b>Will</b> you <b>be attending</b> the seminar?']]},
+ {id:'fp',group:'future',fa:'آینده کامل',en:'Future Perfect',usage:'کاری که تا یک زمان مشخص در آینده تمام شده',ex:[
+   ['pos','By 2027, I <b>will have graduated</b>.'],
+   ['neg','She <b>won&#39;t have finished</b> the project by June.'],
+   ['q','<b>Will</b> they <b>have completed</b> the survey by then?']]},
+ {id:'fpc',group:'future',fa:'آینده کامل استمراری',en:'Future Perfect Continuous',usage:'تداوم فعالیت تا یک نقطه‌ی مشخص در آینده',ex:[
+   ['pos','By December, I <b>will have been living</b> here for 5 years.'],
+   ['neg','He <b>won&#39;t have been working</b> here for a year yet.'],
+   ['q','<b>Will</b> you <b>have been studying</b> for 3 hours by 6pm?']]}
+];
+var GROUPS = [['present','حال'],['past','گذشته'],['future','آینده']];
+
+var TOPICS = [
+ {id:'t_cond',fa:'شرطی‌ها',en:'Conditionals',usage:'Zero: حقایق | First: احتمال واقعی آینده | Second: فرض غیرواقعی حال | Third: حسرت گذشته | Mixed: شرط گذشته، نتیجه حال',form:'If + present, will | If + past, would | If + had + pp, would have + pp',ex:['If you <b>heat</b> ice, it <b>melts</b>.','If governments <b>invested</b> more in rail, emissions <b>would fall</b>.','If I <b>had revised</b>, I <b>would have passed</b>.','If she <b>had accepted</b> the job, she <b>would be</b> living abroad now.'],mistake:'If I will have time, I will come ✘ → If I have time, I will come ✔ (بعد از if زمان آینده نمی‌آید)',tip:'در Task 2 برای راه‌حل‌های فرضی از Second Conditional استفاده کن؛ نشانهٔ دامنهٔ گرامری Band 7+ است.'},
+ {id:'t_pass',fa:'مجهول',en:'Passive Voice',usage:'وقتی عامل کار مهم یا مشخص نیست، یا تأکید روی خود کار است',form:'be + past participle (is done / was done / has been done / is being done)',ex:['The bridge <b>was built</b> in 1990.','Plastic waste <b>is being dumped</b> into oceans.','The law <b>has been criticised</b> by experts.','It <b>is believed</b> that crime will rise.'],mistake:'The accident was happened ✘ → The accident happened ✔ (افعال لازم مثل happen, occur, arise مجهول نمی‌شوند)',tip:'در Task 1 (Process) استفاده از مجهول تقریباً الزامی است.'},
+ {id:'t_modal',fa:'افعال وجهی',en:'Modal Verbs',usage:'توانایی، احتمال، الزام، توصیه، استنباط',form:'modal + base verb (بدون to) | modal + have + pp (گذشته)',ex:['Governments <b>should</b> invest in renewable energy.','Excessive screen time <b>may</b> harm children.','Students <b>must</b> submit the form by Friday.','She <b>can&#39;t have</b> left; her coat is still here.'],mistake:'He can to swim ✘ / must to go ✘ → بعد از modal مصدر بدون to',tip:'Hedging با may / might / tend to برای ادعاهای محتاطانه، نشانهٔ نوشتار آکادمیک است: "This may lead to..."'},
+ {id:'t_rel',fa:'جملات موصولی',en:'Relative Clauses',usage:'Defining (ضروری، بدون ویرگول) و Non-defining (اطلاعات اضافه، با ویرگول)',form:'noun + who / which / that / whose / where + clause',ex:['People <b>who</b> exercise regularly live longer.','The study, <b>which</b> involved 500 adults, was published last year.','The city <b>where</b> I grew up has changed.','It is a factor <b>whose</b> impact is often underestimated.'],mistake:'The man who he called ✘ → The man who called ✔ (ضمیر اضافی «که او» ممنوع)',tip:'در non-defining از that استفاده نکن؛ فقط who/which.'},
+ {id:'t_rep',fa:'نقل قول غیرمستقیم',en:'Reported Speech',usage:'بازگویی حرف دیگران؛ زمان‌ها یک گام به عقب می‌روند (backshift)',form:'said (that) + past | told + object | asked + if/whether',ex:['She said she <b>was</b> tired.','He told me that he <b>had finished</b>.','They asked whether I <b>could</b> help.','The report claimed that prices <b>would rise</b>.'],mistake:'He said me ✘ → He told me ✔ / He said to me ✔',tip:'در Speaking Part 2 برای بازگویی مکالمه‌های گذشته کاربرد دارد.'},
+ {id:'t_art',fa:'حروف تعریف',en:'Articles',usage:'a/an: اولین ذکر، مفرد قابل‌شمارش | the: مشخص/یکتا | بدون حرف تعریف: جمع و غیرقابل‌شمارش در معنای کلی',form:'a + consonant sound | an + vowel sound | the (specific) | zero (general)',ex:['Children need <b>a</b> balanced diet.','<b>The</b> number of cars has risen.','Technology plays an important role in modern life.','She is <b>the</b> best student in <b>the</b> class.'],mistake:'The life is difficult ✘ → Life is difficult ✔ | a information ✘ → some information ✔',tip:'رایج‌ترین خطای فارسی‌زبان‌ها؛ قبل از ارسال Writing، تک‌تک اسم‌ها را از نظر حرف تعریف چک کن.'},
+ {id:'t_ger',fa:'مصدر و ing',en:'Gerund & Infinitive',usage:'برخی افعال ing می‌گیرند، برخی to، و برخی معنی‌شان فرق می‌کند',form:'enjoy / avoid / suggest + -ing | decide / want / hope + to | stop / remember / try (تغییر معنی)',ex:['I <b>enjoy reading</b> novels.','She <b>decided to leave</b>.','He <b>stopped smoking</b>. / He <b>stopped to smoke</b>.','I look forward to <b>meeting</b> you.'],mistake:'I look forward to meet ✘ → meeting ✔ (to در اینجا حرف اضافه است)',tip:'بعد از حروف اضافه همیشه -ing: interested in, capable of, by + -ing.'},
+ {id:'t_comp',fa:'مقایسه',en:'Comparatives & Superlatives',usage:'مقایسهٔ دو یا چند مورد؛ در Task 1 بسیار پرکاربرد',form:'-er / more + adj + than | the -est / the most + adj | the + comparative, the + comparative',ex:['Cars are <b>far more expensive than</b> bikes.','<b>The higher</b> the price, <b>the lower</b> the demand.','Sales rose <b>twice as fast as</b> costs.','This is <b>by far the most</b> effective solution.'],mistake:'more better ✘ / more cheaper ✘ → better / cheaper ✔',tip:'تقویت‌کننده‌های مقایسه: considerably, significantly, slightly, marginally.'},
+ {id:'t_inv',fa:'وارونگی',en:'Inversion',usage:'تأکید رسمی؛ بعد از قید منفی یا محدودکننده فاعل و فعل کمکی جابه‌جا می‌شوند',form:'Negative adverbial + auxiliary + subject + verb',ex:['<b>Never have</b> I seen such progress.','<b>Not only</b> does it save money, <b>but</b> it also protects nature.','<b>Rarely do</b> teenagers read newspapers.','<b>Only when</b> prices fall will demand recover.'],mistake:'Never I have seen ✘ → Never have I seen ✔',tip:'حداکثر ۱ یا ۲ مورد در کل مقاله؛ زیاده‌روی غیرطبیعی به نظر می‌رسد.'},
+ {id:'t_cleft',fa:'جملات تأکیدی',en:'Cleft Sentences',usage:'برجسته‌کردن یک بخش از جمله',form:'It is/was + focus + that... | What + clause + is...',ex:['<b>It is</b> education <b>that</b> drives economic growth.','<b>What</b> concerns me most <b>is</b> the cost.','<b>It was</b> in 2010 <b>that</b> prices peaked.'],mistake:'استفاده بیش از حد؛ یکی دو بار در مقاله کافی است',tip:'در Speaking Part 3: "What I find most striking is..." طبیعی و Band 8-ish است.'},
+ {id:'t_part',fa:'عبارت‌های وصفی',en:'Participle Clauses',usage:'فشرده‌سازی جمله با -ing / -ed برای نوشتار آکادمیک',form:'V-ing (فعال) | V-ed (مجهول) | Having + pp (پیش از)',ex:['<b>Having completed</b> the survey, researchers analysed the data.','Cities <b>built</b> near rivers flourished.','<b>Working</b> long hours, many employees feel exhausted.'],mistake:'Walking down the street, the rain started ✘ (فاعل هر دو بخش باید یکی باشد)',tip:'یکی از بهترین ابزارها برای Grammatical Range در Band 8.'},
+ {id:'t_quant',fa:'کمیت‌نماها',en:'Quantifiers & Determiners',usage:'many / much / few / little / a few / a little و مفهوم کم و زیاد',form:'many + plural | much + uncountable | few/a few + plural | little/a little + uncountable',ex:['There are <b>many</b> reasons for this trend.','Too <b>much</b> sugar is harmful.','<b>A few</b> students failed, but <b>few</b> people noticed.','He has <b>little</b> money left.'],mistake:'much people ✘ → many people ✔ | a few = چندتا (مثبت)، few = تقریباً هیچ (منفی)',tip:'a large number of + جمع | a great deal of + غیرقابل‌شمارش؛ در Writing رسمی‌تر از a lot of هستند.'},
+ {id:'t_count',fa:'اسم قابل‌شمارش و غیرقابل‌شمارش',en:'Countable & Uncountable',usage:'برخی اسم‌ها که در فارسی شمارش‌پذیرند در انگلیسی جمع نمی‌شوند',form:'advice, information, research, knowledge, equipment, furniture, traffic, evidence, progress, news, luggage',ex:['The <b>research</b> shows a clear link.','She gave me useful <b>advice</b>.','Heavy <b>traffic</b> causes pollution.','Here is <b>a piece of</b> advice.'],mistake:'informations ✘ | advices ✘ | an equipment ✘ → information / advice / equipment ✔',tip:'برای شمارش از a piece of / an item of / a body of استفاده کن: a growing body of evidence.'},
+ {id:'t_prep',fa:'حروف اضافه',en:'Prepositions',usage:'حرف اضافهٔ وابسته به فعل و اسم باید با هم حفظ شود',form:'depend on | result in | result from | contribute to | focus on | increase in | solution to | reason for',ex:['Success depends <b>on</b> hard work.','The policy resulted <b>in</b> lower emissions.','There was a sharp increase <b>in</b> prices.','We need a solution <b>to</b> this problem.'],mistake:'discuss about ✘ → discuss the issue ✔ | emphasize on ✘ → emphasize ✔ (این دو فعل حرف اضافه نمی‌گیرند)',tip:'زمان: in the morning / on Monday / at night؛ این سه را با هم یاد بگیر.'},
+ {id:'t_link',fa:'ربط‌دهنده‌ها',en:'Linking Devices',usage:'تضاد، اضافه، نتیجه و مثال؛ بین جمله‌ها و بخش‌ها',form:'although / whereas / despite + noun | however / moreover / consequently + comma',ex:['<b>Although</b> costs are high, demand remains strong.','<b>Despite</b> the rain, the match continued.','Prices rose; <b>consequently</b>, demand fell.','Cities are crowded, <b>whereas</b> villages are quiet.'],mistake:'Despite of ✘ → Despite / In spite of ✔ | Although ... but ✘ (فقط یکی)',tip:'شروع همهٔ جمله‌ها با ربط‌دهنده مکانیکی است؛ ربط را طبیعی و کم به کار ببر.'},
+ {id:'t_sva',fa:'مطابقت فاعل و فعل',en:'Subject-Verb Agreement',usage:'فعل باید با فاعل واقعی از نظر مفرد و جمع هماهنگ باشد',form:'the number of + singular verb | a number of + plural verb | everyone, each + singular',ex:['The number of cars <b>has</b> risen.','A number of cars <b>have</b> been recalled.','Neither the teacher nor the students <b>were</b> ready.','Everyone <b>is</b> responsible.'],mistake:'People is ✘ → People are ✔ (people جمع است)',tip:'قبل از ارسال، فاعل هر جمله را پیدا کن و فعل را با آن چک کن؛ خطای ساده Band را پایین می‌آورد.'},
+ {id:'t_ell',fa:'حذف و جایگزینی',en:'Ellipsis & Substitution',usage:'از تکرار بی‌دلیل پرهیز کن؛ برای Speaking طبیعی‌تر است',form:'so / do / does / one / ones / others / the same',ex:['I like tea and she <b>does</b> too.','Some people prefer cities; <b>others</b> prefer villages.','He can swim, and so <b>can</b> she.','If <b>so</b>, the policy should change.'],mistake:'تکرار کامل فعل: I like tea and she likes tea too ✘ (غیرطبیعی)',tip:'در Speaking Part 3 برای جلوگیری از تکرار استفاده کن.'},
+ {id:'t_fut',fa:'اشکال آینده',en:'Future Forms',usage:'will: تصمیم لحظه‌ای یا پیش‌بینی | be going to: قصد قبلی یا پیش‌بینی با شواهد | حال استمراری: قرار قطعی | حال ساده: برنامهٔ رسمی',form:'will + base | am/is/are going to + base | am/is/are + V-ing | present simple (timetable)',ex:['I think it <b>will</b> rain tomorrow.','Look at those clouds; it <b>is going to</b> rain.','I <b>am meeting</b> him at five.','The train <b>leaves</b> at nine.'],mistake:'When I will arrive, I call you ✘ → When I arrive, I will call you ✔ (بعد از when/if/as soon as زمان آینده نمی‌آید)',tip:'برای پیش‌بینی در Task 2: is expected to / is likely to / is projected to.'},
+ {id:'t_used',fa:'used to / would / be used to',en:'Habits in the Past',usage:'used to: عادت یا حالت گذشته | would: فقط عادت تکراری گذشته | be/get used to: عادت‌داشتن یا عادت‌کردن',form:'used to + base | would + base | be/get used to + -ing',ex:['I <b>used to</b> live in Tehran.','We <b>would</b> visit my grandmother every summer.','I <b>am used to</b> waking up early.','It took time to <b>get used to</b> living abroad.'],mistake:'I am used to wake up ✘ → waking up ✔ | I would live in Tehran ✘ (حالت است، would نه)',tip:'در Speaking Part 2 برای خاطرهٔ کودکی عالی است.'},
+ {id:'t_state',fa:'افعال حالتی',en:'State Verbs',usage:'افعال ذهنی، احساسی و مالکیت معمولاً استمراری نمی‌شوند',form:'know, understand, believe, want, like, own, belong, seem, prefer',ex:['I <b>understand</b> the point.','She <b>owns</b> two cars.','This soup <b>tastes</b> great.','She <b>is tasting</b> the soup. (عمل)'],mistake:'I am knowing ✘ / I am wanting ✘ → I know / I want ✔',tip:'برخی افعال دو معنا دارند: think, have, see؛ با معنی عملی می‌توانند استمراری شوند.'},
+ {id:'t_wish',fa:'wish و if only',en:'Wishes & Regrets',usage:'wish + گذشته: حسرت حال | wish + past perfect: حسرت گذشته | wish + would: ناراحتی از رفتار',form:'wish + past simple | wish + had + pp | wish + would + base',ex:['I wish I <b>had</b> more free time.','She wishes she <b>had studied</b> medicine.','I wish it <b>would stop</b> raining.','If only I <b>were</b> taller.'],mistake:'I wish I have more time ✘ → I wish I had ✔',tip:'در نوشتار رسمی were برای همهٔ فاعل‌ها پذیرفته است: If I were you.'},
+ {id:'t_cause',fa:'ساختار سببی',en:'Causatives',usage:'وقتی کسی دیگر کاری را برای ما یا به دستور ما انجام می‌دهد',form:'have/get + object + pp | make/let + object + base | get + object + to',ex:['I <b>had my car repaired</b>.','The teacher <b>made</b> us <b>rewrite</b> the essay.','They <b>let</b> children <b>choose</b> their books.','She <b>got</b> him <b>to help</b>.'],mistake:'make us to write ✘ → make us write ✔ | I repaired my car (وقتی مکانیک تعمیر کرده) ✘',tip:'در Task 2: governments should make companies reduce... بسیار کاربردی است.'},
+ {id:'t_noun',fa:'جملهٔ اسمی',en:'Noun Clauses',usage:'یک جمله که نقش اسم دارد (فاعل، مفعول، مکمل)',form:'that / whether / if / wh-word + فاعل + فعل (ترتیب خبری)',ex:['<b>What she said</b> surprised me.','I wonder <b>whether it will work</b>.','It is clear <b>that</b> prices will rise.','The question is <b>why they left</b>.'],mistake:'I don&#39;t know where is he ✘ → where he is ✔ (ترتیب سؤالی ممنوع)',tip:'یکی از بهترین ابزارها برای نشان‌دادن Grammatical Range.'},
+ {id:'t_advcl',fa:'جملهٔ قیدی',en:'Adverbial Clauses',usage:'زمان، دلیل، هدف، تضاد و شرط',form:'when, as soon as | because, since | so that | although, even though | unless, if',ex:['<b>As soon as</b> she arrived, it started to rain.','<b>Since</b> demand is high, prices rise.','He studied hard <b>so that</b> he could pass.','<b>Unless</b> we act, emissions will rise.'],mistake:'Unless you don&#39;t study ✘ → Unless you study ✔ (unless خودش منفی است)',tip:'بعد از بند قیدی در ابتدای جمله ویرگول بگذار.'},
+ {id:'t_q',fa:'سؤال و نفی',en:'Questions & Negation',usage:'ساختار سؤال با فعل کمکی و جابه‌جایی؛ نفی با not و never',form:'wh + auxiliary + subject + verb | subject question: wh + verb',ex:['<b>Where did</b> they go?','<b>Who</b> broke the window?','She <b>has never</b> been abroad.','It&#39;s expensive, <b>isn&#39;t it</b>?'],mistake:'Where they went? ✘ | I don&#39;t know nothing ✘ (نفی دوگانه) → I don&#39;t know anything ✔',tip:'سؤال‌های برچسبی (tag questions) در Speaking طبیعی است.'},
+ {id:'t_adj',fa:'ترتیب صفت و جای قید',en:'Adjective Order & Adverb Position',usage:'ترتیب صفت‌ها ثابت است و قیدها جای مشخصی دارند',form:'opinion, size, age, shape, colour, origin, material + noun | قید تکرار: قبل از فعل اصلی، بعد از be',ex:['a <b>beautiful old wooden</b> house','She <b>always</b> arrives early.','He is <b>never</b> late.','I like it <b>very much</b>.'],mistake:'I like very much it ✘ → I like it very much ✔ | a wooden old house ✘',tip:'قید را بین فعل و مفعول نگذار: I enjoy <b>very much</b> music ✘.'},
+ {id:'t_par',fa:'توازن و ویرگول',en:'Parallelism & Punctuation',usage:'اجزای هم‌نوع باید هم‌شکل باشند و دو جملهٔ کامل را نباید فقط با ویرگول چسباند',form:'A, B and C (same form) | clause; however, clause | clause, but clause',ex:['She enjoys <b>swimming</b>, <b>reading</b> and <b>cooking</b>.','Cities are crowded<b>;</b> however, they offer jobs.','Cities are crowded<b>, but</b> they offer jobs.','He wants <b>to travel</b> and <b>to learn</b> languages.'],mistake:'Cities are crowded, they offer jobs ✘ (comma splice) | She likes swimming and to read ✘',tip:'comma splice از رایج‌ترین خطاهای Writing است؛ سر هر ویرگول چک کن.'},
+ {id:'t_wf',fa:'ساخت واژه',en:'Word Formation',usage:'نقش کلمه (اسم، صفت، قید، فعل) باید با جایگاهش در جمله بخواند',form:'-tion, -ment, -ness, -ity (اسم) | -ive, -ous, -al, -ful (صفت) | -ly (قید) | -ize, -en (فعل)',ex:['a <b>significant</b> increase / it increased <b>significantly</b>','sustain, <b>sustainable</b>, <b>sustainability</b>','<b>economic</b> growth vs an <b>economical</b> car','<b>success</b>, <b>successful</b>, <b>successfully</b>'],mistake:'a significantly increase ✘ → a significant increase ✔ | economic ≠ economical',tip:'قبل از نوشتن هر کلمه بپرس: اینجا اسم لازم است یا صفت یا قید؟ خطای word form هم LR هم GRA را خراب می‌کند.'},
+ {id:'t_cond2',fa:'شرطی‌های پیشرفته',en:'Advanced Conditionals',usage:'جایگزین‌های if برای تنوع ساختار',form:'unless | provided (that) / as long as | otherwise | Had + subj + pp | Should + subj + base',ex:['<b>Unless</b> we act now, the damage will be irreversible.','<b>Provided that</b> funding is available, the plan will succeed.','<b>Had</b> I known, I would have called.','<b>Should</b> you need help, please contact us.'],mistake:'As long as it won&#39;t rain ✘ → As long as it doesn&#39;t rain ✔',tip:'وارونگی شرطی (Had I... / Should you...) را فقط یک بار در مقاله بیاور.'},
+ {id:'t_subj',fa:'وجه التزامی',en:'Subjunctive & Suggest',usage:'بعد از suggest, recommend, insist, demand و عبارت‌هایی مثل it is essential that',form:'recommend/suggest/insist that + subject + (should) + base verb',ex:['Experts recommend that people <b>exercise</b> daily.','It is vital that he <b>be</b> present.','She insisted that he <b>apologise</b>.','I suggest <b>taking</b> a different approach.'],mistake:'suggest to do ✘ → suggest doing ✔ | He recommends that she goes ✘ (رسمی) → she (should) go',tip:'در Task 2 برای راه‌حل: It is essential that governments introduce...'},
+ {id:'t_pers',fa:'خطاهای رایج فارسی‌زبان‌ها',en:'Persian-Speaker Errors',usage:'ترجمهٔ مستقیم از فارسی بزرگ‌ترین منبع خطاست',form:'فعل be حذف نشود | present perfect با since/for | فاعل حذف نشود | very کمتر',ex:['I <b>have lived</b> here since 2020.','She <b>is</b> a doctor.','<b>There are</b> many problems.','I <b>agree</b> with him.'],mistake:'I live here since 2020 ✘ | Is a good idea ✘ (فاعل) | I am agree ✘ | Have many problems ✘ → There are',tip:'به‌جای very: extremely, highly, deeply؛ و make a decision / do research / say vs tell را جدا تمرین کن.'}
+
+];
+var GR = [
+ ['۱) فعل و زمان',['t_state','t_used','t_fut','t_modal','t_pass','t_cause']],
+ ['۲) شرط و فرض',['t_cond','t_cond2','t_wish','t_subj']],
+ ['۳) جمله‌های پیچیده',['t_rel','t_noun','t_advcl','t_part','t_rep','t_link']],
+ ['۴) اسم، حرف تعریف و حروف اضافه',['t_art','t_count','t_quant','t_prep','t_wf','t_ger']],
+ ['۵) ساختار و سبک',['t_comp','t_adj','t_q','t_sva','t_par','t_inv','t_cleft','t_ell']],
+ ['۶) دام‌های فارسی‌زبان‌ها',['t_pers']]
+];
+var HOOK = {
+ t_state:'ذهن، احساس و مالکیت = ایستا؛ هیچ‌وقت ing نمی‌گیرند',
+ t_used:'used to = قبلاً بود، حالا نیست | be used to = عادت دارم (+ing)',
+ t_fut:'will = همین الان تصمیم گرفتم | going to = از قبل قصد داشتم',
+ t_modal:'بعد از modal همیشه فعل ساده. قدرت: must > should > may > might',
+ t_pass:'مهم نیست چه کسی کرد، مهم این است چه شد: be + pp',
+ t_cause:'کار را کس دیگری انجام می‌دهد: have + چیز + pp',
+ t_cond:'صفر = همیشه | اول = شاید | دوم = کاش | سوم = دیر شد',
+ t_cond2:'unless = if not؛ پس بعد از آن منفی نیاور',
+ t_wish:'wish یک پله عقب‌تر از واقعیت می‌رود: حال ← گذشته، گذشته ← past perfect',
+ t_subj:'بعد از suggest / recommend: فعل ساده، بدون s',
+ t_rel:'who = آدم | which = چیز | where = مکان | whose = مالکیت',
+ t_noun:'جمله‌ای که جای اسم می‌نشیند؛ ترتیب خبری، نه سؤالی',
+ t_advcl:'کی؟ چرا؟ برای چه؟ با وجود چه؟ هر کدام رابط خودش را دارد',
+ t_part:'دو جمله با فاعل یکسان؟ یکی را فشرده کن',
+ t_rep:'نقل قول یعنی یک قدم عقب‌تر در زمان (backshift)',
+ t_link:'تضاد: however | اضافه: moreover | نتیجه: therefore',
+ t_art:'a = یکی از چند تا | the = همان که می‌دانیم | هیچ = کلی',
+ t_count:'اگر نمی‌توانی بشماری، s نده: advice, information, research',
+ t_quant:'many = شمردنی | much = نشمردنی | few / little = تقریباً هیچ',
+ t_prep:'حرف اضافه را همراه فعل یا اسم حفظ کن: depend on, increase in',
+ t_wf:'اول نقش را بپرس: اسم؟ صفت؟ قید؟',
+ t_ger:'بعد از حرف اضافه همیشه ing',
+ t_comp:'کوتاه: -er | بلند: more | هر دو با than',
+ t_adj:'نظر ← اندازه ← سن ← رنگ ← جنس ← اسم',
+ t_q:'فعل کمکی می‌پرد جلوی فاعل',
+ t_sva:'فاعل واقعی را پیدا کن، نه اسمی که نزدیک فعل است',
+ t_par:'دو جملهٔ کامل را فقط با ویرگول به هم نچسبان',
+ t_inv:'قید منفی اول جمله ← فعل کمکی می‌پرد جلو',
+ t_cleft:'آنچه تأکیدش را می‌خواهی بعد از It is بگذار',
+ t_ell:'تکرار نکن: do, so, others, one',
+ t_pers:'قبل از ترجمه فکر کن: فاعل و be را نینداز'
+};
+
+var TIPS = [
+ {id:'k_goal',t:'هدف ۸.۵ یعنی چه؟',items:['نمرهٔ کل میانگین چهار مهارت است و به نزدیک‌ترین نیم‌نمره گرد می‌شود (مثلاً میانگین ۸.۲۵ می‌شود ۸.۵).','Listening و Reading برای ۸.۵ تقریباً به ۳۸–۳۹ از ۴۰ نیاز دارند (جدول دقیق هر آزمون کمی فرق می‌کند).','Writing و Speaking معمولاً سخت‌ترین مهارت‌ها هستند؛ برنامهٔ تمرین را بر اساس ضعیف‌ترین مهارت ببند.','هر چهار مهارت وزن برابر دارند؛ یک مهارت ضعیف، نمرهٔ کل را می‌کشد پایین.']},
+ {id:'k_wr',t:'Writing',items:['Task 1: حتماً Overview بنویس (روند کلی بدون عدد)؛ بدون آن Task Achievement بالا نمی‌رود.','حداقل ۱۵۰ کلمه (Task 1) و ۲۵۰ کلمه (Task 2)؛ کمتر از این جریمه دارد.','Task 2 وزن بیشتری دارد: حدود ۴۰ دقیقه برای Task 2 و ۲۰ دقیقه برای Task 1.','Task 2: به همهٔ بخش‌های سؤال جواب بده و موضعت را در مقدمه و نتیجه یکسان نگه دار.','هر پاراگراف بدنه: ایدهٔ اصلی ← توضیح ← مثال مشخص (نه کلی‌گویی).','۳–۵ دقیقه برنامه‌ریزی؛ جملهٔ ساده و بدون خطا بهتر از جملهٔ پیچیدهٔ خطادار است.','مقاله حفظ‌شده تشخیص داده می‌شود و جریمه دارد.']},
+ {id:'k_sp',t:'Speaking',items:['Part 1: جواب ۲–۳ جمله: پاسخ + دلیل + مثال کوتاه (نه یک کلمه).','Part 2: ۱ دقیقه آماده‌سازی؛ ۴–۵ کلمهٔ کلیدی بنویس و ۱.۵ تا ۲ دقیقه کامل صحبت کن.','Part 3: نظر بده، گذشته و حال را مقایسه کن، آینده را حدس بزن: "I would argue that...", "It largely depends on..."','برای فکرکردن از fillers طبیعی استفاده کن: "Well,", "Let me think..."؛ خوداصلاحی طبیعی عیب نیست.','جواب حفظ‌شده را مصحح می‌فهمد؛ روان‌بودن و طبیعی‌بودن مهم‌تر از لغات سنگین است.','تلفظ: تکیهٔ کلمه (word stress) و آهنگ جمله از تک‌تک صداها مهم‌ترند.']},
+ {id:'k_rd',t:'Reading',items:['۲۰ دقیقه برای هر Passage؛ روی یک سؤال گیر نکن و بعداً برگرد.','اول سؤال‌ها را بخوان، بعد scanning برای کلمات کلیدی؛ جواب معمولاً به ترتیب متن است (به‌جز Matching Headings / Information).','True/False/Not Given: False یعنی متن خلاف را می‌گوید؛ Not Given یعنی متن دربارهٔ آن حرفی نزده. با دانش خودت جواب نده.','جواب با همان کلمات سؤال نیست؛ دنبال paraphrase و مترادف بگرد.','رعایت تعداد کلمات مجاز (NO MORE THAN TWO WORDS) و املا الزامی است؛ غلط املایی = غلط.','در Reading زمان اضافه برای انتقال جواب نداری؛ همان لحظه در پاسخنامه بنویس.']},
+ {id:'k_ls',t:'Listening',items:['قبل از پخش، سؤال‌ها را بخوان و نوع جواب (عدد، اسم، صفت) را پیش‌بینی کن.','Distractor: گوینده اول چیزی می‌گوید و بعد اصلاح می‌کند (Actually..., On second thought...)؛ جواب نهایی را بنویس.','اعداد، تاریخ‌ها و املای اسم‌ها را جدا تمرین کن؛ حروف مشابه مثل G/J و E/I را تمرین کن.','جمع/مفرد و املا را چک کن؛ جواب باید از نظر گرامری در جمله جا بیفتد.','در نسخهٔ کاغذی ۱۰ دقیقه برای انتقال جواب هست و در نسخهٔ کامپیوتری حدود ۲ دقیقه برای بازبینی.','وقتی یک سؤال را از دست دادی ادامه بده؛ فکر کردن به آن، سؤال بعدی را هم از دست می‌دهد.']}
+];
+
+
+var CATS = [
+  ['env','محیط‌زیست'],['edu','آموزش'],['tech','فناوری'],['health','سلامت'],
+  ['econ','اقتصاد و کار'],['crime','جرم و قانون'],['society','جامعه و فرهنگ'],['media','جهانی‌شدن و رسانه'],['acad','کلمات آکادمیک'],['life','زندگی روزمره و Speaking']
+];
+var VOCAB = [
+ {w:'sustainable',ipa:'/səˈsteɪnəbl/',pos:'adj',fa:'پایدار',cat:'env',ex:'The government promotes <b>sustainable</b> energy sources.'},
+ {w:'deforestation',ipa:'/diːˌfɒrɪˈsteɪʃn/',pos:'n',fa:'جنگل‌زدایی',cat:'env',ex:'<b>Deforestation</b> is a major cause of climate change.'},
+ {w:'emission',ipa:'/ɪˈmɪʃn/',pos:'n',fa:'انتشار (گاز آلاینده)',cat:'env',ex:'Factories must reduce carbon <b>emissions</b>.'},
+ {w:'renewable',ipa:'/rɪˈnjuːəbl/',pos:'adj',fa:'تجدیدپذیر',cat:'env',ex:'Solar power is a <b>renewable</b> source of energy.'},
+ {w:'pollutant',ipa:'/pəˈluːtənt/',pos:'n',fa:'آلاینده',cat:'env',ex:'Vehicles release harmful <b>pollutants</b> into the air.'},
+ {w:'biodiversity',ipa:'/ˌbaɪoʊdaɪˈvɜːrsəti/',pos:'n',fa:'تنوع زیستی',cat:'env',ex:'Rainforests contain remarkable <b>biodiversity</b>.'},
+
+ {w:'curriculum',ipa:'/kəˈrɪkjələm/',pos:'n',fa:'برنامه درسی',cat:'edu',ex:'The school revised its <b>curriculum</b> last year.'},
+ {w:'literacy',ipa:'/ˈlɪtərəsi/',pos:'n',fa:'سواد',cat:'edu',ex:'<b>Literacy</b> rates have improved significantly.'},
+ {w:'tuition',ipa:'/tjuˈɪʃn/',pos:'n',fa:'شهریه',cat:'edu',ex:'University <b>tuition</b> fees keep rising.'},
+ {w:'rote learning',ipa:'/roʊt ˈlɜːrnɪŋ/',pos:'n',fa:'حفظ طوطی‌وار',cat:'edu',ex:'<b>Rote learning</b> rarely leads to deep understanding.'},
+ {w:'undergraduate',ipa:'/ˌʌndərˈɡrædʒuət/',pos:'n',fa:'دانشجوی کارشناسی',cat:'edu',ex:'She is an <b>undergraduate</b> student in biology.'},
+ {w:'extracurricular',ipa:'/ˌekstrəkəˈrɪkjələr/',pos:'adj',fa:'فوق‌برنامه',cat:'edu',ex:'He takes part in several <b>extracurricular</b> activities.'},
+
+ {w:'innovative',ipa:'/ˈɪnəveɪtɪv/',pos:'adj',fa:'نوآورانه',cat:'tech',ex:'The company is known for <b>innovative</b> products.'},
+ {w:'artificial intelligence',ipa:'/ˌɑːrtɪˈfɪʃl ɪnˈtelɪdʒəns/',pos:'n',fa:'هوش مصنوعی',cat:'tech',ex:'<b>Artificial intelligence</b> is transforming healthcare.'},
+ {w:'obsolete',ipa:'/ˌɒbsəˈliːt/',pos:'adj',fa:'منسوخ',cat:'tech',ex:'Many old devices have become <b>obsolete</b>.'},
+ {w:'breakthrough',ipa:'/ˈbreɪkθruː/',pos:'n',fa:'پیشرفت بزرگ',cat:'tech',ex:'Scientists made a major <b>breakthrough</b> in gene therapy.'},
+ {w:'cybersecurity',ipa:'/ˈsaɪbərsɪˌkjʊrəti/',pos:'n',fa:'امنیت سایبری',cat:'tech',ex:'Companies invest heavily in <b>cybersecurity</b>.'},
+ {w:'automation',ipa:'/ˌɔːtəˈmeɪʃn/',pos:'n',fa:'اتوماسیون',cat:'tech',ex:'<b>Automation</b> has replaced many factory jobs.'},
+
+ {w:'chronic',ipa:'/ˈkrɒnɪk/',pos:'adj',fa:'مزمن',cat:'health',ex:'Diabetes is a <b>chronic</b> illness.'},
+ {w:'obesity',ipa:'/oʊˈbiːsəti/',pos:'n',fa:'چاقی',cat:'health',ex:'<b>Obesity</b> rates have doubled in two decades.'},
+ {w:'sedentary',ipa:'/ˈsednteri/',pos:'adj',fa:'کم‌تحرک',cat:'health',ex:'A <b>sedentary</b> lifestyle increases health risks.'},
+ {w:'malnutrition',ipa:'/ˌmælnjuːˈtrɪʃn/',pos:'n',fa:'سوءتغذیه',cat:'health',ex:'<b>Malnutrition</b> remains common in poorer regions.'},
+ {w:'well-being',ipa:'/ˈwel ˌbiːɪŋ/',pos:'n',fa:'تندرستی',cat:'health',ex:'Exercise improves mental <b>well-being</b>.'},
+ {w:'epidemic',ipa:'/ˌepɪˈdemɪk/',pos:'n',fa:'اپیدمی',cat:'health',ex:'The country faced a flu <b>epidemic</b>.'},
+
+ {w:'unemployment',ipa:'/ˌʌnɪmˈplɔɪmənt/',pos:'n',fa:'بیکاری',cat:'econ',ex:'<b>Unemployment</b> rose sharply during the recession.'},
+ {w:'inflation',ipa:'/ɪnˈfleɪʃn/',pos:'n',fa:'تورم',cat:'econ',ex:'High <b>inflation</b> reduces purchasing power.'},
+ {w:'subsidize',ipa:'/ˈsʌbsɪdaɪz/',pos:'v',fa:'یارانه دادن',cat:'econ',ex:'The government <b>subsidizes</b> public transport.'},
+ {w:'workforce',ipa:'/ˈwɜːrkfɔːrs/',pos:'n',fa:'نیروی کار',cat:'econ',ex:'Automation is reshaping the global <b>workforce</b>.'},
+ {w:'entrepreneur',ipa:'/ˌɒntrəprəˈnɜːr/',pos:'n',fa:'کارآفرین',cat:'econ',ex:'She became a successful <b>entrepreneur</b> at 25.'},
+ {w:'revenue',ipa:'/ˈrevənjuː/',pos:'n',fa:'درآمد',cat:'econ',ex:'The company&#39;s <b>revenue</b> grew by 10%.'},
+
+ {w:'offender',ipa:'/əˈfendər/',pos:'n',fa:'مجرم',cat:'crime',ex:'First-time <b>offenders</b> often receive lighter sentences.'},
+ {w:'deterrent',ipa:'/dɪˈterənt/',pos:'n',fa:'بازدارنده',cat:'crime',ex:'Harsh penalties act as a <b>deterrent</b>.'},
+ {w:'surveillance',ipa:'/sərˈveɪləns/',pos:'n',fa:'نظارت',cat:'crime',ex:'Cities rely on <b>surveillance</b> cameras for safety.'},
+ {w:'juvenile',ipa:'/ˈdʒuːvənaɪl/',pos:'adj',fa:'نوجوان، خردسال',cat:'crime',ex:'<b>Juvenile</b> crime has become a growing concern.'},
+ {w:'rehabilitation',ipa:'/ˌriːəˌbɪlɪˈteɪʃn/',pos:'n',fa:'بازپروری',cat:'crime',ex:'Prisons should focus more on <b>rehabilitation</b>.'},
+ {w:'legislation',ipa:'/ˌledʒɪsˈleɪʃn/',pos:'n',fa:'قانون‌گذاری',cat:'crime',ex:'New <b>legislation</b> aims to reduce cybercrime.'},
+
+ {w:'heritage',ipa:'/ˈherɪtɪdʒ/',pos:'n',fa:'میراث',cat:'society',ex:'The old town is a UNESCO <b>heritage</b> site.'},
+ {w:'diversity',ipa:'/daɪˈvɜːrsəti/',pos:'n',fa:'تنوع',cat:'society',ex:'Cultural <b>diversity</b> enriches a society.'},
+ {w:'urbanization',ipa:'/ˌɜːrbənaɪˈzeɪʃn/',pos:'n',fa:'شهرنشینی',cat:'society',ex:'Rapid <b>urbanization</b> has strained city infrastructure.'},
+ {w:'generation gap',ipa:'/ˌdʒenəˈreɪʃn ɡæp/',pos:'n',fa:'شکاف نسلی',cat:'society',ex:'The <b>generation gap</b> affects communication at home.'},
+ {w:'discrimination',ipa:'/dɪˌskrɪmɪˈneɪʃn/',pos:'n',fa:'تبعیض',cat:'society',ex:'Laws protect workers from <b>discrimination</b>.'},
+ {w:'norm',ipa:'/nɔːrm/',pos:'n',fa:'هنجار',cat:'society',ex:'Remote work has become the <b>norm</b> for many.'},
+
+ {w:'globalization',ipa:'/ˌɡloʊbəlaɪˈzeɪʃn/',pos:'n',fa:'جهانی‌شدن',cat:'media',ex:'<b>Globalization</b> has increased international trade.'},
+ {w:'outsource',ipa:'/ˈaʊtsɔːrs/',pos:'v',fa:'برون‌سپاری کردن',cat:'media',ex:'Many firms <b>outsource</b> customer service abroad.'},
+ {w:'censorship',ipa:'/ˈsensərʃɪp/',pos:'n',fa:'سانسور',cat:'media',ex:'<b>Censorship</b> limits access to information.'},
+ {w:'propaganda',ipa:'/ˌprɒpəˈɡændə/',pos:'n',fa:'تبلیغات مغرضانه',cat:'media',ex:'The regime used <b>propaganda</b> to control public opinion.'},
+ {w:'tabloid',ipa:'/ˈtæbɔɪd/',pos:'n',fa:'روزنامه زرد',cat:'media',ex:'<b>Tabloid</b> newspapers often exaggerate stories.'},
+ {w:'misinformation',ipa:'/ˌmɪsɪnfərˈmeɪʃn/',pos:'n',fa:'اطلاعات نادرست',cat:'media',ex:'Social media accelerates the spread of <b>misinformation</b>.'},
+ {w:'mitigate',ipa:'/ˈmɪtɪɡeɪt/',pos:'v',fa:'کاهش دادن (شدت)',cat:'env',ex:'Planting trees helps <b>mitigate</b> climate change.'},
+ {w:'conservation',ipa:'/ˌkɒnsəˈveɪʃn/',pos:'n',fa:'حفاظت',cat:'env',ex:'Wildlife <b>conservation</b> requires international cooperation.'},
+ {w:'depletion',ipa:'/dɪˈpliːʃn/',pos:'n',fa:'تخلیه، کاهش منابع',cat:'env',ex:'The <b>depletion</b> of fish stocks threatens coastal communities.'},
+ {w:'vocational',ipa:'/voʊˈkeɪʃənl/',pos:'adj',fa:'حرفه‌ای، فنی',cat:'edu',ex:'<b>Vocational</b> training prepares students for specific jobs.'},
+ {w:'compulsory',ipa:'/kəmˈpʌlsəri/',pos:'adj',fa:'اجباری',cat:'edu',ex:'Education is <b>compulsory</b> until the age of sixteen.'},
+ {w:'peer pressure',ipa:'/pɪər ˈpreʃər/',pos:'n',fa:'فشار همسالان',cat:'edu',ex:'<b>Peer pressure</b> can influence teenagers&#39; choices.'},
+ {w:'ubiquitous',ipa:'/juːˈbɪkwɪtəs/',pos:'adj',fa:'فراگیر، همه‌جا حاضر',cat:'tech',ex:'Smartphones have become <b>ubiquitous</b>.'},
+ {w:'digital divide',ipa:'/ˈdɪdʒɪtl dɪˈvaɪd/',pos:'n',fa:'شکاف دیجیتال',cat:'tech',ex:'The <b>digital divide</b> leaves rural areas behind.'},
+ {w:'addictive',ipa:'/əˈdɪktɪv/',pos:'adj',fa:'اعتیادآور',cat:'tech',ex:'Social media can be highly <b>addictive</b>.'},
+ {w:'preventive',ipa:'/prɪˈventɪv/',pos:'adj',fa:'پیشگیرانه',cat:'health',ex:'<b>Preventive</b> care reduces long-term costs.'},
+ {w:'life expectancy',ipa:'/laɪf ɪkˈspektənsi/',pos:'n',fa:'امید به زندگی',cat:'health',ex:'<b>Life expectancy</b> has risen in most countries.'},
+ {w:'nutritious',ipa:'/njuˈtrɪʃəs/',pos:'adj',fa:'مغذی',cat:'health',ex:'Schools should serve <b>nutritious</b> meals.'},
+ {w:'disparity',ipa:'/dɪˈspærəti/',pos:'n',fa:'نابرابری، اختلاف',cat:'econ',ex:'The income <b>disparity</b> between regions is widening.'},
+ {w:'recession',ipa:'/rɪˈseʃn/',pos:'n',fa:'رکود اقتصادی',cat:'econ',ex:'The <b>recession</b> forced many firms to close.'},
+ {w:'consumerism',ipa:'/kənˈsuːmərɪzəm/',pos:'n',fa:'مصرف‌گرایی',cat:'econ',ex:'<b>Consumerism</b> encourages people to buy more than they need.'},
+ {w:'sentence',ipa:'/ˈsentəns/',pos:'n',fa:'حکم، مجازات',cat:'crime',ex:'He received a ten-year prison <b>sentence</b>.'},
+ {w:'prosecute',ipa:'/ˈprɒsɪkjuːt/',pos:'v',fa:'تحت پیگرد قرار دادن',cat:'crime',ex:'Offenders should be <b>prosecuted</b> promptly.'},
+ {w:'petty crime',ipa:'/ˈpeti kraɪm/',pos:'n',fa:'جرم خرد',cat:'crime',ex:'<b>Petty crime</b> is common in crowded areas.'},
+ {w:'stereotype',ipa:'/ˈsteriətaɪp/',pos:'n',fa:'کلیشه، تصور قالبی',cat:'society',ex:'Media can reinforce gender <b>stereotypes</b>.'},
+ {w:'marginalised',ipa:'/ˈmɑːdʒɪnəlaɪzd/',pos:'adj',fa:'به حاشیه‌رانده‌شده',cat:'society',ex:'<b>Marginalised</b> groups need stronger support.'},
+ {w:'social cohesion',ipa:'/ˈsoʊʃl koʊˈhiːʒn/',pos:'n',fa:'انسجام اجتماعی',cat:'society',ex:'Shared activities strengthen <b>social cohesion</b>.'},
+ {w:'viral',ipa:'/ˈvaɪrəl/',pos:'adj',fa:'پرانتشار (ویروسی)',cat:'media',ex:'The video went <b>viral</b> within hours.'},
+ {w:'mainstream',ipa:'/ˈmeɪnstriːm/',pos:'adj',fa:'جریان اصلی',cat:'media',ex:'<b>Mainstream</b> media coverage shapes public debate.'},
+ {w:'accountable',ipa:'/əˈkaʊntəbl/',pos:'adj',fa:'پاسخگو',cat:'media',ex:'Journalists must be <b>accountable</b> for their reporting.'},
+ {w:'implement',ipa:'/ˈɪmplɪment/',pos:'v',fa:'اجرا کردن',cat:'acad',ex:'The government plans to <b>implement</b> new policies.'},
+ {w:'undermine',ipa:'/ˌʌndərˈmaɪn/',pos:'v',fa:'تضعیف کردن',cat:'acad',ex:'Corruption <b>undermines</b> public trust.'},
+ {w:'constitute',ipa:'/ˈkɒnstɪtjuːt/',pos:'v',fa:'تشکیل دادن',cat:'acad',ex:'Women <b>constitute</b> sixty percent of the workforce.'},
+ {w:'enhance',ipa:'/ɪnˈhɑːns/',pos:'v',fa:'ارتقا دادن',cat:'acad',ex:'Online tools can <b>enhance</b> learning.'},
+ {w:'hinder',ipa:'/ˈhɪndər/',pos:'v',fa:'مانع شدن',cat:'acad',ex:'Poor infrastructure <b>hinders</b> economic growth.'},
+ {w:'advocate',ipa:'/ˈædvəkeɪt/',pos:'v',fa:'حمایت کردن از',cat:'acad',ex:'Many experts <b>advocate</b> stricter regulation.'},
+ {w:'inevitable',ipa:'/ɪnˈevɪtəbl/',pos:'adj',fa:'اجتناب‌ناپذیر',cat:'acad',ex:'Some job losses seem <b>inevitable</b>.'},
+ {w:'controversial',ipa:'/ˌkɒntrəˈvɜːʃl/',pos:'adj',fa:'بحث‌برانگیز',cat:'acad',ex:'The proposal remains highly <b>controversial</b>.'},
+ {w:'detrimental',ipa:'/ˌdetrɪˈmentl/',pos:'adj',fa:'زیان‌بار',cat:'acad',ex:'Smoking is <b>detrimental</b> to health.'},
+ {w:'beneficial',ipa:'/ˌbenɪˈfɪʃl/',pos:'adj',fa:'مفید',cat:'acad',ex:'Regular exercise is <b>beneficial</b> for the heart.'},
+ {w:'prevalent',ipa:'/ˈprevələnt/',pos:'adj',fa:'رایج، شایع',cat:'acad',ex:'Obesity is increasingly <b>prevalent</b> among children.'},
+ {w:'substantial',ipa:'/səbˈstænʃl/',pos:'adj',fa:'قابل‌توجه',cat:'acad',ex:'There was a <b>substantial</b> increase in sales.'},
+ {w:'fundamental',ipa:'/ˌfʌndəˈmentl/',pos:'adj',fa:'بنیادین',cat:'acad',ex:'Education is a <b>fundamental</b> human right.'},
+ {w:'phenomenon',ipa:'/fəˈnɒmɪnən/',pos:'n',fa:'پدیده',cat:'acad',ex:'Urban migration is a global <b>phenomenon</b>.'},
+ {w:'trend',ipa:'/trend/',pos:'n',fa:'روند',cat:'acad',ex:'There is a clear <b>trend</b> towards remote work.'},
+ {w:'incentive',ipa:'/ɪnˈsentɪv/',pos:'n',fa:'مشوق، انگیزه',cat:'acad',ex:'Tax cuts provide an <b>incentive</b> to invest.'},
+ {w:'commute',ipa:'/kəˈmjuːt/',pos:'n',fa:'رفت‌وآمد روزانه',cat:'life',ex:'My daily <b>commute</b> takes an hour.'},
+ {w:'hectic',ipa:'/ˈhektɪk/',pos:'adj',fa:'پرمشغله و شلوغ',cat:'life',ex:'I have a <b>hectic</b> schedule this week.'},
+ {w:'sibling',ipa:'/ˈsɪblɪŋ/',pos:'n',fa:'خواهر یا برادر',cat:'life',ex:'I have two younger <b>siblings</b>.'},
+ {w:'neighbourhood',ipa:'/ˈneɪbərhʊd/',pos:'n',fa:'محله',cat:'life',ex:'It is a quiet <b>neighbourhood</b>.'},
+ {w:'cuisine',ipa:'/kwɪˈziːn/',pos:'n',fa:'سبک آشپزی',cat:'life',ex:'Persian <b>cuisine</b> uses a lot of fresh herbs.'},
+ {w:'nostalgic',ipa:'/nɒˈstældʒɪk/',pos:'adj',fa:'دلتنگ گذشته',cat:'life',ex:'Old photos make me feel <b>nostalgic</b>.'},
+ {w:'spontaneous',ipa:'/spɒnˈteɪniəs/',pos:'adj',fa:'بی‌برنامه، خودجوش',cat:'life',ex:'We took a <b>spontaneous</b> trip to the coast.'},
+ {w:'work-life balance',ipa:'/ˌwɜːrk laɪf ˈbæləns/',pos:'n',fa:'تعادل کار و زندگی',cat:'life',ex:'A good <b>work-life balance</b> reduces stress.'},
+ {w:'hands-on',ipa:'/ˌhændz ˈɒn/',pos:'adj',fa:'عملی',cat:'life',ex:'I prefer <b>hands-on</b> learning.'},
+ {w:'pastime',ipa:'/ˈpɑːstaɪm/',pos:'n',fa:'سرگرمی',cat:'life',ex:'Reading is my favourite <b>pastime</b>.'},
+ {w:'habitat',ipa:'/ˈhæbɪtæt/',pos:'n',fa:'زیستگاه',cat:'env',ex:'Logging destroys the natural <b>habitat</b> of many species.'},
+ {w:'fossil fuel',ipa:'/ˈfɒsl fjuːəl/',pos:'n',fa:'سوخت فسیلی',cat:'env',ex:'Countries must reduce their use of <b>fossil fuels</b>.'},
+ {w:'privacy',ipa:'/ˈprɪvəsi/',pos:'n',fa:'حریم خصوصی',cat:'tech',ex:'Online <b>privacy</b> is a growing concern.'},
+ {w:'virtual',ipa:'/ˈvɜːtʃuəl/',pos:'adj',fa:'مجازی',cat:'tech',ex:'<b>Virtual</b> classrooms have become common.'},
+ {w:'sanitation',ipa:'/ˌsænɪˈteɪʃn/',pos:'n',fa:'بهداشت عمومی',cat:'health',ex:'Poor <b>sanitation</b> spreads disease.'},
+ {w:'diagnose',ipa:'/ˈdaɪəɡnoʊz/',pos:'v',fa:'تشخیص دادن',cat:'health',ex:'Doctors <b>diagnosed</b> the illness early.'},
+ {w:'affordable',ipa:'/əˈfɔːrdəbl/',pos:'adj',fa:'مقرون‌به‌صرفه',cat:'econ',ex:'Governments should provide <b>affordable</b> housing.'},
+ {w:'penalty',ipa:'/ˈpenəlti/',pos:'n',fa:'جریمه، مجازات',cat:'crime',ex:'The <b>penalty</b> for speeding has increased.'},
+ {w:'stimulate',ipa:'/ˈstɪmjuleɪt/',pos:'v',fa:'تحریک کردن',cat:'acad',ex:'Games can <b>stimulate</b> creativity.'},
+ {w:'contradict',ipa:'/ˌkɒntrəˈdɪkt/',pos:'v',fa:'ناقض بودن',cat:'acad',ex:'The new data <b>contradicts</b> earlier findings.'},
+ {w:'outweigh',ipa:'/ˌaʊtˈweɪ/',pos:'v',fa:'بیشتر بودن از',cat:'acad',ex:'The benefits <b>outweigh</b> the risks.'},
+ {w:'tackle',ipa:'/ˈtækl/',pos:'v',fa:'مقابله با (مشکل)',cat:'acad',ex:'Governments must <b>tackle</b> youth unemployment.'},
+ {w:'viable',ipa:'/ˈvaɪəbl/',pos:'adj',fa:'عملی، شدنی',cat:'acad',ex:'Solar power is now a <b>viable</b> alternative.'},
+ {w:'adverse',ipa:'/ˈædvɜːrs/',pos:'adj',fa:'نامطلوب',cat:'acad',ex:'Pollution has <b>adverse</b> effects on health.'},
+ {w:'outcome',ipa:'/ˈaʊtkʌm/',pos:'n',fa:'نتیجه',cat:'acad',ex:'The <b>outcome</b> of the study was surprising.'},
+ {w:'priority',ipa:'/praɪˈɒrəti/',pos:'n',fa:'اولویت',cat:'acad',ex:'Safety must be the top <b>priority</b>.'},
+ {w:'implication',ipa:'/ˌɪmplɪˈkeɪʃn/',pos:'n',fa:'پیامد',cat:'acad',ex:'The findings have serious <b>implications</b> for policy.'},
+ {w:'mandatory',ipa:'/ˈmændətɔːri/',pos:'adj',fa:'الزامی',cat:'acad',ex:'Seat belts are <b>mandatory</b> in many countries.'},
+ {w:'curb',ipa:'/kɜːrb/',pos:'v',fa:'مهار کردن',cat:'acad',ex:'New taxes aim to <b>curb</b> smoking.'},
+ {w:'eradicate',ipa:'/ɪˈrædɪkeɪt/',pos:'v',fa:'ریشه‌کن کردن',cat:'acad',ex:'Vaccines helped <b>eradicate</b> smallpox.'}
+];
+
+var WRITING = [
+ {id:'w1',t:'Task 1: ساختار ۴ پاراگرافی',items:['Intro: موضوع نمودار را paraphrase کن (The chart illustrates / shows / compares...).','Overview: ۲ جمله، روندهای اصلی یا مهم‌ترین تفاوت‌ها، بدون عدد و جزئیات.','Body 1 و Body 2: داده‌ها را گروه‌بندی و مقایسه کن؛ عددهای کلیدی را بیاور، نه همهٔ عددها را.','نظر شخصی یا پیش‌بینی ننویس؛ فقط آنچه در نمودار هست.','سال‌ها و واحدها (%, million) را دقیق بنویس.']},
+ {id:'w2',t:'Task 1: افعال و قیدهای روند',items:['بالا رفتن: rise, increase, climb, soar (شدید) | پایین آمدن: fall, decline, drop, plummet (شدید)','ثابت: remain stable / level off | نوسان: fluctuate | اوج: peak at','Sales <b>rose sharply</b> from 20% to 55%.','There was a <b>gradual decline</b> in unemployment.','قیدها: dramatically, steadily, slightly, significantly']},
+ {id:'w3',t:'Task 1: عدد، مقایسه و Process',items:['تقریب: approximately, roughly, just over, nearly, around a third of','A was <b>twice as high as</b> B | A was <b>considerably higher than</b> B | by contrast, whereas','Overview نمونه: Overall, car ownership rose steadily, whereas public transport use declined.','Process: از مجهول و ترتیب‌دهنده‌ها استفاده کن: First, Next, Subsequently, Finally.']},
+ {id:'w4',t:'Task 2: ساختار ۴ پاراگرافی',items:['Intro: موضوع را paraphrase کن + thesis (موضع یا خلاصهٔ پاسخ) در ۲ جمله.','Body 1: Topic sentence ← توضیح ← مثال مشخص.','Body 2: ایدهٔ دوم یا طرف مقابل با همان الگو.','Conclusion: خلاصه و تکرار موضع با کلمات متفاوت؛ ایدهٔ جدید نیاور.','حدود ۲۶۰ تا ۳۱۰ کلمه مناسب است؛ خیلی بلند شدن ریسک خطا را بالا می‌برد.']},
+ {id:'w5',t:'Task 2: انواع سؤال',items:['Opinion (To what extent do you agree?): موضع واضح در intro و conclusion.','Discussion (Discuss both views): هر دو نظر + نظر خودت.','Advantages/Disadvantages: اگر outweigh پرسیده شد، حتماً قضاوت کن.','Problem/Solution: برای هر مشکل یک راه‌حل مرتبط.','Two-question: به هر دو سؤال کامل جواب بده.']},
+ {id:'w6',t:'Task 2: عبارات ربط و موضع',items:['شروع: It is often argued that... | In recent years, ... has become increasingly...','موضع: In my view,... | I would argue that... | I firmly believe that...','اضافه: Moreover, ... | In addition, ... | Furthermore, ...','تضاد: However, ... | On the other hand, ... | Although... | Whereas...','نتیجه: As a result, ... | Consequently, ... | Therefore, ...','پایان: In conclusion, ... | To sum up, ...']},
+ {id:'w7',t:'معیارهای نمره‌دهی Writing',items:['Task Response/Achievement: پاسخ کامل، ایده‌های بسط‌داده‌شده و مثال مشخص.','Coherence & Cohesion: پاراگراف‌بندی منطقی و ربط طبیعی، نه مکانیکی.','Lexical Resource: واژگان دقیق و collocation طبیعی، نه لغات سنگین بی‌جا.','Grammatical Range & Accuracy: ساختارهای متنوع و اکثر جمله‌ها بدون خطا.','Band 8 یعنی خطاها نادر و کم‌اثرند؛ دقت از پیچیدگی مهم‌تر است.']}
+];
+var PHRASES = [
+ {p:'play a crucial role in',t:'collocation',fa:'نقش حیاتی ایفا کردن در',ex:'Education <b>plays a crucial role in</b> reducing poverty.'},
+ {p:'pose a threat to',t:'collocation',fa:'تهدیدی برای ... ایجاد کردن',ex:'Plastic waste <b>poses a threat to</b> marine life.'},
+ {p:'raise awareness of',t:'collocation',fa:'آگاهی ... را بالا بردن',ex:'Campaigns <b>raise awareness of</b> mental health.'},
+ {p:'take measures to',t:'collocation',fa:'اقداماتی برای ... انجام دادن',ex:'Governments must <b>take measures to</b> cut emissions.'},
+ {p:'reach a consensus',t:'collocation',fa:'به اجماع رسیدن',ex:'Experts failed to <b>reach a consensus</b> on the issue.'},
+ {p:'widen the gap between',t:'collocation',fa:'فاصلهٔ بین ... را زیاد کردن',ex:'Automation may <b>widen the gap between</b> rich and poor.'},
+ {p:'address the issue of',t:'collocation',fa:'به مسئلهٔ ... پرداختن',ex:'Schools must <b>address the issue of</b> bullying.'},
+ {p:'place a burden on',t:'collocation',fa:'باری بر دوش ... گذاشتن',ex:'An ageing population <b>places a burden on</b> healthcare.'},
+ {p:'a growing body of evidence',t:'collocation',fa:'شواهد روزافزون',ex:'<b>A growing body of evidence</b> links sleep to memory.'},
+ {p:'shed light on',t:'collocation',fa:'روشن کردن، روشنگری دربارهٔ',ex:'The study <b>sheds light on</b> the causes of obesity.'},
+ {p:'foster a sense of',t:'collocation',fa:'حس ... را پرورش دادن',ex:'Team sports <b>foster a sense of</b> belonging.'},
+ {p:'strike a balance between',t:'collocation',fa:'تعادل برقرار کردن بین',ex:'We must <b>strike a balance between</b> growth and nature.'},
+ {p:'carry out',t:'phrasal verb',fa:'انجام دادن (= conduct)، جدایی‌پذیر',ex:'Researchers <b>carried out</b> a large survey.'},
+ {p:'bring about',t:'phrasal verb',fa:'به وجود آوردن (= cause)',ex:'Technology has <b>brought about</b> major social change.'},
+ {p:'come up with',t:'phrasal verb',fa:'ایده یا راه‌حل پیدا کردن',ex:'Engineers <b>came up with</b> a cheaper design.'},
+ {p:'cut down on',t:'phrasal verb',fa:'کم کردن مصرف',ex:'People should <b>cut down on</b> sugar.'},
+ {p:'look into',t:'phrasal verb',fa:'بررسی کردن (= investigate)',ex:'The committee will <b>look into</b> the complaint.'},
+ {p:'put off',t:'phrasal verb',fa:'به تعویق انداختن (= postpone)',ex:'They <b>put off</b> the decision until next year.'},
+ {p:'rule out',t:'phrasal verb',fa:'منتفی دانستن، کنار گذاشتن',ex:'Doctors <b>ruled out</b> a serious infection.'},
+ {p:'set up',t:'phrasal verb',fa:'تأسیس کردن، راه‌اندازی کردن',ex:'She <b>set up</b> a charity in 2015.'},
+ {p:'phase out',t:'phrasal verb',fa:'به تدریج حذف کردن',ex:'The country plans to <b>phase out</b> coal power.'},
+ {p:'account for',t:'phrasal verb',fa:'سهم ... را داشتن؛ توضیح دادن',ex:'Rent <b>accounts for</b> 40% of spending.'}
+];
+var QUIZ = [
+ {q:'If I ___ more time, I would travel more.',o:['have','had','will have','would have'],a:1,e:'Second conditional: If + past simple, would + verb.'},
+ {q:'Choose the correct sentence.',o:['The accident was happened.','The accident happened.','The accident has been happened.','The accident is happened.'],a:1,e:'happen فعل لازم است و مجهول نمی‌شود.'},
+ {q:'I look forward to ___ you.',o:['meet','meeting','met','to meet'],a:1,e:'در look forward to، کلمهٔ to حرف اضافه است و بعدش -ing می‌آید.'},
+ {q:'She gave me some useful ___.',o:['advices','advice','an advice','advicies'],a:1,e:'advice غیرقابل‌شمارش است.'},
+ {q:'Never ___ such a beautiful view.',o:['I have seen','have I seen','I saw','did I seen'],a:1,e:'بعد از Never در ابتدای جمله، وارونگی: have + فاعل + pp.'},
+ {q:'The closest meaning of "mitigate" is:',o:['worsen','reduce the severity of','ignore','predict'],a:1,e:'mitigate یعنی شدت چیزی را کم کردن.'},
+ {q:'Choose the correct sentence.',o:['He said me the truth.','He told me the truth.','He tell me the truth.','He told to me the truth.'],a:1,e:'tell + مفعول؛ say + to + مفعول.'},
+ {q:'Which verb means "fall dramatically"?',o:['soar','plummet','fluctuate','level off'],a:1,e:'plummet = سقوط شدید.'},
+ {q:'Minimum words for IELTS Writing Task 2:',o:['150','200','250','300'],a:2,e:'Task 2 حداقل ۲۵۰ کلمه؛ Task 1 حداقل ۱۵۰ کلمه.'},
+ {q:'Which collocation is natural?',o:['do a decision','make a decision','make a homework','do a mistake'],a:1,e:'make a decision / do homework / make a mistake.'},
+ {q:'The number of students ___ increased.',o:['have','has','are','were'],a:1,e:'The number of + فعل مفرد؛ A number of + فعل جمع.'},
+ {q:'"Look into" means:',o:['investigate','ignore','postpone','cause'],a:0,e:'look into = investigate.'},
+ {q:'He ___ here since 2020.',o:['lives','lived','has lived','is living'],a:2,e:'since + نقطهٔ زمانی ← present perfect.'},
+ {q:'I wish I ___ more time.',o:['have','had','will have','would have'],a:1,e:'wish + past simple برای حسرت حال.'},
+ {q:'Choose the correct sentence.',o:['Despite of the rain, we went out.','Despite the rain, we went out.','Despite that the rain, we went out.','Despite it rained, we went out.'],a:1,e:'Despite + اسم، بدون of.'},
+ {q:'She suggested ___ earlier.',o:['to leave','leaving','leave to','for leaving'],a:1,e:'suggest + V-ing.'},
+ {q:'If the text does not mention the statement at all, the answer is:',o:['True','False','Not Given','Yes'],a:2,e:'متن نگفته = Not Given.'},
+ {q:'Which word is a noun?',o:['economic','economical','economy','economically'],a:2,e:'economy اسم است؛ بقیه صفت و قید.'}
+];
+var SPEAK = [
+ {id:'s1',t:'Part 1: فرمول جواب',items:['فرمول: پاسخ مستقیم + دلیل + مثال یا جزئیات (۲ تا ۳ جمله).','نمونه — Do you enjoy cooking? → Yes, quite a lot. It helps me unwind after work, and I have recently started trying traditional dishes from different regions.','موضوع‌های رایج: home, work/study, hometown, hobbies, food, daily routine, technology, weather.','جواب تک‌کلمه‌ای و بیش از ۴ جمله هر دو بد است.','سؤال را کلمه‌به‌کلمه تکرار نکن؛ paraphrase کن: Do you work or study? → I am currently working as...']},
+ {id:'s2',t:'Part 2: کارت موضوع',items:['ساختار ۴ تکه‌ای: معرفی (What/Who) ← جزئیات (When/Where) ← داستان یا توضیح ← احساس و دلیل.','در ۱ دقیقهٔ آمادگی فقط ۵ یا ۶ کلمهٔ کلیدی بنویس، نه جمله.','ربط‌های روایی: To begin with, ... | What happened next was... | Looking back, ...','اگر وقت ماند: What I remember most is... | It made me realise that...','زمان گذشته را دقیق نگه دار؛ ترکیب used to، past perfect و past continuous امتیاز می‌آورد.','تا وقتی ممتحن متوقفت نکرده (حدود ۲ دقیقه) صحبت کن.']},
+ {id:'s3',t:'Part 3: بحث انتزاعی',items:['فرمول: نظر + دلیل + مقایسه یا مثال + نتیجه.','شروع نظر: I would say that... | From my perspective... | It largely depends on...','مقایسهٔ گذشته و حال: Compared with the past, ... | These days, ...','حدس آینده: I suspect that... | It is likely that... | In the long run, ...','موافقت جزئی: That is partly true, but... | Up to a point.','سؤال را نفهمیدی؟ Could you rephrase that, please? (جریمه ندارد.)']},
+ {id:'s4',t:'روانی و تلفظ',items:['Fluency: خطای کوچک را رها کن و ادامه بده؛ مکث طولانی بدتر از یک خطای کوچک است.','Fillers طبیعی: Well, | Actually, | To be honest, | Let me think...','Word stress: re-CORD (فعل) / REC-ord (اسم) | pho-TOG-ra-phy | e-CON-o-my','مشکل رایج فارسی‌زبان‌ها: خوشهٔ صامت اول کلمه (school ← اسکول ✘)، تفاوت /w/ و /v/، و صداهای th.','آهنگ جمله را بالا و پایین ببر؛ یکنواخت صحبت‌کردن Pronunciation را پایین می‌آورد.','ضبط صدای خودت و مقایسه با گوینده‌ی بومی بهترین تمرین رایگان است.']}
+];
+var RL = [
+ {id:'r1',t:'Reading: انواع سؤال',items:['True/False/Not Given: موافق متن = True | مخالف = False | متن اصلاً نگفته = Not Given.','Matching Headings: اول ایدهٔ اصلی هر پاراگراف را پیدا کن (معمولاً جملهٔ اول و آخر)، بعد تیتر را انتخاب کن.','Summary/Sentence Completion: نوع کلمه (اسم، فعل، صفت) را از ساختار جمله حدس بزن.','Matching Information: سؤال‌ها به ترتیب متن نیستند؛ کلمهٔ کلیدی را در کل متن پیدا کن.','Multiple Choice: گزینه‌ها را حذف کن؛ گزینه‌ای که فقط بخشی از متن را پوشش می‌دهد معمولاً دام است.','Yes/No/Not Given: مثل T/F/NG ولی دربارهٔ نظر نویسنده.']},
+ {id:'r2',t:'Reading: Paraphrase',items:['متن و سؤال هیچ‌وقت کلمات یکسان ندارند؛ مترادف و تغییر ساختار را دنبال کن.','rise sharply = increase dramatically | cause = lead to / result in | important = crucial / vital | because of = owing to','Not Given با False فرق دارد؛ اگر متن بحث نکرده، جواب دانش خودت نیست.','کلمات هشداردار: all, never, only, always, must؛ قیدهای مطلق معمولاً جواب را False می‌کنند.','تمرین روزانه: هر روز ۳ جمله بخوان و با کلمات خودت بازنویسی کن.']},
+ {id:'r3',t:'Listening: بخش‌ها و دام‌ها',items:['Section 1: مکالمهٔ روزمره (فرم) | 2: تک‌گویی عمومی | 3: بحث دانشگاهی | 4: سخنرانی آکادمیک.','تغییر پاسخ: گوینده می‌گوید Actually, ... یا No, sorry, it is... ← جواب آخر را بنویس.','املا: حرف Z، اسامی با حرف دوبل (Cooper)، و اعداد ۱۳ و ۳۰ (thirTEEN / THIRty).','Map labeling: عبارت‌های مکان را یاد بگیر: opposite, next to, behind, on the left of.','در چندگزینه‌ای، مترادف گزینه‌ها را در گفتار گوش بده، نه خود کلمه را.','اگر یک پاسخ را گم کردی رهایش کن؛ سؤال بعدی مهم‌تر است.']}
+];
+var quizAns = {};
+
+function load(key, fallback){ try{ var v = localStorage.getItem(key); return v===null? fallback : JSON.parse(v); }catch(e){ return fallback; } }
+function save(key, val){ try{ localStorage.setItem(key, JSON.stringify(val)); }catch(e){} }
+
+function dayIndex(len){
+  var d = new Date(); var start = new Date(d.getFullYear(),0,0);
+  var diff = d - start; return Math.floor(diff / 86400000) % len;
+}
+function todayStr(){ var d = new Date(); return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate(); }
+function updateStreak(){
+  var last = load('haman_last_visit', null); var streak = load('haman_streak', 0); var today = todayStr();
+  if(last !== today){
+    var y = new Date(Date.now()-86400000);
+    var yStr = y.getFullYear()+'-'+(y.getMonth()+1)+'-'+y.getDate();
+    streak = (last === yStr) ? streak + 1 : 1;
+    save('haman_streak', streak); save('haman_last_visit', today);
+  }
+  return streak;
+}
+function exRow(ex){
+  var cls = {pos:'pos',neg:'neg',q:'q'}[ex[0]];
+  var mark = {pos:'\u2714',neg:'\u2718',q:'?'}[ex[0]];
+  return '<div class="ex '+cls+'"><span class="mark">'+mark+'</span><span>'+ex[1]+'</span></div>';
+}
+
+var gDone = load('haman_done', {});
+var vDone = load('haman_vocab_done', {});
+var streak = updateStreak();
+var todayTense = TENSES[dayIndex(TENSES.length)];
+var todayWord = VOCAB[dayIndex(VOCAB.length)];
+var view = 'grammar';
+var activeCat = 'all';
+
+function gProgress(){ var all = TENSES.concat(TOPICS); var n = all.filter(function(t){return gDone[t.id];}).length; return {n:n, total:all.length, pct:Math.round(n/all.length*100)}; }
+function vProgress(){ var n = VOCAB.filter(function(v){return vDone[v.w];}).length; return {n:n, total:VOCAB.length, pct:Math.round(n/VOCAB.length*100)}; }
+
+function renderGrammar(){
+  var html = '';
+  html += '<div class="daily-card">';
+  html += '<div class="daily-eyebrow">زمان امروز</div>';
+  html += '<h1 class="daily-title">'+todayTense.fa+' <span style="font-weight:400;color:var(--fg-mut);font-size:14px">'+todayTense.en+'</span></h1>';
+  html += '<p class="daily-usage">'+todayTense.usage+'</p>';
+  html += '<div class="ex-list">'+todayTense.ex.map(exRow).join('')+'</div>';
+  html += '<button class="daily-btn '+(gDone[todayTense.id]?'done':'')+'" data-today-toggle>'+(gDone[todayTense.id]?'\u2714 امروز رو مرور کردی':'مرور کردم، علامت بزن')+'</button>';
+  html += '</div>';
+  GROUPS.forEach(function(g){
+    var key=g[0], label=g[1];
+    html += '<div class="section-title">'+label+'</div><div class="group">';
+    TENSES.filter(function(t){return t.group===key;}).forEach(function(t){
+      html += '<div class="card" data-card="'+t.id+'">';
+      html += '<div class="card-head" data-toggle="'+t.id+'">';
+      html += '<div class="title-wrap"><span class="dot '+(gDone[t.id]?'done':'pending')+'"></span><span class="t">'+t.fa+' &middot; '+t.en+'</span></div>';
+      html += '<span class="chev">&#9662;</span></div>';
+      html += '<div class="card-body"><div class="card-body-inner">';
+      html += '<p class="usage">'+t.usage+'</p>';
+      html += '<div class="ex-list">'+t.ex.map(exRow).join('')+'</div>';
+      html += '<button class="mini-btn '+(gDone[t.id]?'done':'')+'" data-toggle-done="'+t.id+'">'+(gDone[t.id]?'\u2714 تسلط دارم':'علامت به‌عنوان یادگرفته‌شده')+'</button>';
+      html += '</div></div></div>';
+    });
+    html += '</div>';
+  });
+  html += '<div class="section-title" style="margin-top:34px;font-size:15px;color:var(--accent-fg)">نقشهٔ ذهنی گرامر: ۶ دسته</div>';
+  GR.forEach(function(g){
+    html += '<div class="section-title">'+g[0]+'</div><div class="group">';
+    g[1].forEach(function(id){
+      var t = TOPICS.filter(function(x){return x.id===id;})[0]; if(!t) return;
+      html += '<div class="card"><div class="card-head" data-toggle="'+t.id+'">';
+      html += '<div class="title-wrap"><span class="dot '+(gDone[t.id]?'done':'pending')+'"></span><span class="t">'+t.fa+' &middot; '+t.en+'</span></div><span class="chev">&#9662;</span></div>';
+      html += '<div class="card-body"><div class="card-body-inner">';
+      html += '<div class="lbl">🧠 قاعدهٔ ذهنی</div><div class="hook">'+(HOOK[t.id]||'')+'</div>';
+      html += '<div class="lbl">مفهوم</div><p class="usage" style="margin:0">'+t.usage+'</p>';
+      html += '<div class="lbl">فرمول</div><div class="tform" style="margin:0">'+t.form+'</div>';
+      html += '<div class="lbl">مثال‌ها</div><div class="ex-list">'+t.ex.map(function(e){return exRow(['pos',e]);}).join('')+'</div>';
+      html += '<div class="warn">⚠ اشتباه رایج: '+t.mistake+'</div><div class="tipbox">💡 '+t.tip+'</div>';
+      html += '<button class="mini-btn '+(gDone[t.id]?'done':'')+'" style="margin-top:14px" data-toggle-done="'+t.id+'">'+(gDone[t.id]?'\u2714 تسلط دارم':'علامت به‌عنوان یادگرفته‌شده')+'</button>';
+      html += '</div></div></div>';
+    });
+    html += '</div>';
+  });
+  return html;
+}
+
+function renderTips(){
+  var html = '<div class="section-title">نکات تستی و استراتژی آزمون</div><div class="group">';
+  TIPS.forEach(function(k){
+    html += '<div class="card"><div class="card-head" data-toggle="'+k.id+'"><div class="title-wrap"><span class="t">'+k.t+'</span></div><span class="chev">&#9662;</span></div>';
+    html += '<div class="card-body"><ul class="tl">'+k.items.map(function(i){return '<li>'+i+'</li>';}).join('')+'</ul></div></div>';
+  });
+  return html + '</div>';
+}
+
+function renderVocab(){
+  var html = '';
+  html += '<div class="daily-card">';
+  html += '<div class="daily-eyebrow">کلمه امروز</div>';
+  html += '<h1 class="daily-title">'+todayWord.w+' <span style="font-weight:400;color:var(--fg-mut);font-size:14px">'+todayWord.ipa+'</span></h1>';
+  html += '<p class="daily-usage">'+todayWord.fa+' &middot; ('+todayWord.pos+'.)</p>';
+  html += '<div class="vex" style="font-size:14px">'+todayWord.ex+'</div>';
+  html += '<button class="daily-btn '+(vDone[todayWord.w]?'done':'')+'" data-today-word-toggle>'+(vDone[todayWord.w]?'\u2714 امروز رو یاد گرفتی':'یاد گرفتم، علامت بزن')+'</button>';
+  html += '</div>';
+
+  html += '<div class="chips">';
+  html += '<button class="chip '+(activeCat==='all'?'active':'')+'" data-cat="all">همه</button>';
+  CATS.forEach(function(c){ html += '<button class="chip '+(activeCat===c[0]?'active':'')+'" data-cat="'+c[0]+'">'+c[1]+'</button>'; });
+  html += '</div>';
+
+  var list = activeCat==='all' ? VOCAB : VOCAB.filter(function(v){return v.cat===activeCat;});
+  html += '<div class="vcount">'+list.length+' کلمه</div>';
+  html += '<div class="group">';
+  list.forEach(function(v){
+    html += '<div class="vcard" data-vcard="'+v.w+'">';
+    html += '<div class="vhead" data-vtoggle="'+v.w+'">';
+    html += '<div class="vword"><div class="w">'+v.w+(vDone[v.w]?' \u2714':'')+'</div><div class="ipa">'+v.ipa+'</div></div>';
+    html += '<span class="vpos">'+v.pos+'.</span></div>';
+    html += '<div class="vbody"><div class="vbody-inner">';
+    html += '<p class="vfa">'+v.fa+'</p>';
+    html += '<p class="vex">'+v.ex+'</p>';
+    html += '<button class="mini-btn '+(vDone[v.w]?'done':'')+'" data-vdone="'+v.w+'">'+(vDone[v.w]?'\u2714 بلدم':'یاد گرفتم')+'</button>';
+    html += '</div></div></div>';
+  });
+  html += '</div>';
+  return html;
+}
+
+function renderAcc(title, list){
+  var html = '<div class="section-title">'+title+'</div><div class="group">';
+  list.forEach(function(k){
+    html += '<div class="card"><div class="card-head" data-toggle="'+k.id+'"><div class="title-wrap"><span class="t">'+k.t+'</span></div><span class="chev">&#9662;</span></div>';
+    html += '<div class="card-body"><ul class="tl">'+k.items.map(function(i){return '<li>'+i+'</li>';}).join('')+'</ul></div></div>';
+  });
+  return html + '</div>';
+}
+function renderWriting(){ return renderAcc('راهنمای کامل Writing', WRITING); }
+function pcard(p){
+  return '<div class="vcard"><div class="vhead" data-vtoggle="x"><div class="vword"><div class="w">'+p.p+'</div></div><span class="vpos">'+p.t+'</span></div><div class="vbody"><div class="vbody-inner"><p class="vfa">'+p.fa+'</p><p class="vex">'+p.ex+'</p></div></div></div>';
+}
+function renderPhrases(){
+  var html = '<div class="section-title">Collocations (هم‌نشینی‌های طبیعی)</div><div class="group">';
+  html += PHRASES.filter(function(p){return p.t==='collocation';}).map(pcard).join('') + '</div>';
+  html += '<div class="section-title">Phrasal Verbs</div><div class="group">';
+  html += PHRASES.filter(function(p){return p.t==='phrasal verb';}).map(pcard).join('') + '</div>';
+  return html;
+}
+function renderQuiz(){
+  var score = 0, done = 0;
+  QUIZ.forEach(function(q,i){ if(quizAns[i]!==undefined){ done++; if(quizAns[i]===q.a) score++; } });
+  var html = '<div class="score">امتیاز: '+score+' از '+QUIZ.length+' ('+done+' پاسخ داده‌شده)</div>';
+  QUIZ.forEach(function(q,i){
+    html += '<div class="qcard"><p class="qq">'+(i+1)+'. '+q.q+'</p>';
+    q.o.forEach(function(o,j){
+      var cls = '';
+      if(quizAns[i]!==undefined){ if(j===q.a) cls=' ok'; else if(j===quizAns[i]) cls=' bad'; }
+      html += '<button class="opt'+cls+'" data-q="'+i+'" data-qo="'+j+'">'+o+'</button>';
+    });
+    if(quizAns[i]!==undefined) html += '<div class="expl">'+q.e+'</div>';
+    html += '</div>';
+  });
+  html += '<button class="daily-btn done" data-qreset>شروع دوباره</button>';
+  return html;
+}
+
+function render(){
+  var gp = gProgress(), vp = vProgress();
+  var pct = view==='vocab' ? vp.pct : gp.pct;
+  var lbl = view==='vocab' ? (vp.n+' از '+vp.total+' کلمه یاد گرفتی') : (gp.n+' از '+gp.total+' مبحث گرامر تسلط پیدا کردی');
+  var app = document.getElementById('app');
+  var html = '';
+  html += '<header class="top"><div class="row">';
+  html += '<div class="brand">Haman English<small>مرور روزانه‌ی گرامر و لغات آیلتس</small></div>';
+  html += '<div class="streak"><div class="num">'+streak+'</div><div class="lbl">روز پیاپی</div></div>';
+  html += '</div>';
+  html += '<div class="progressbar"><div style="width:'+pct+'%"></div></div>';
+  html += '<div class="progress-lbl">'+lbl+'</div>';
+  html += '<div class="tabbar"><button data-view="grammar" class="'+(view==='grammar'?'active':'')+'">گرامر</button><button data-view="vocab" class="'+(view==='vocab'?'active':'')+'">لغات</button><button data-view="speaking" class="'+(view==='speaking'?'active':'')+'">اسپیکینگ</button><button data-view="rl" class="'+(view==='rl'?'active':'')+'">ریدینگ و لیسنینگ</button><button data-view="writing" class="'+(view==='writing'?'active':'')+'">رایتینگ</button><button data-view="phrases" class="'+(view==='phrases'?'active':'')+'">عبارات</button><button data-view="quiz" class="'+(view==='quiz'?'active':'')+'">آزمون</button><button data-view="tips" class="'+(view==='tips'?'active':'')+'">نکات آزمون</button></div>';
+  html += '</header>';
+  html += '<div class="wrap">';
+  html += view==='grammar' ? renderGrammar() : (view==='vocab' ? renderVocab() : (view==='speaking' ? renderAcc('راهنمای کامل Speaking', SPEAK) : (view==='rl' ? renderAcc('Reading و Listening', RL) : (view==='writing' ? renderWriting() : (view==='phrases' ? renderPhrases() : (view==='quiz' ? renderQuiz() : renderTips()))))));
+  html += '<footer>Haman English &middot; ساخته‌شده برای مرور روزانه</footer>';
+  html += '</div>';
+  var sy = window.scrollY; app.innerHTML = html;
+  bind(); window.scrollTo(0, sy);
+}
+
+function bind(){
+  var app = document.getElementById('app');
+  app.querySelectorAll('[data-view]').forEach(function(el){
+    el.addEventListener('click', function(){ view = el.getAttribute('data-view'); render(); });
+  });
+  app.querySelectorAll('[data-toggle]').forEach(function(el){
+    el.addEventListener('click', function(){ el.closest('.card').classList.toggle('open'); });
+  });
+  var tBtn = app.querySelector('[data-today-toggle]');
+  if(tBtn){ tBtn.addEventListener('click', function(){ gDone[todayTense.id] = !gDone[todayTense.id]; save('haman_done', gDone); render(); }); }
+  app.querySelectorAll('[data-toggle-done]').forEach(function(el){
+    el.addEventListener('click', function(e){ e.stopPropagation(); var id = el.getAttribute('data-toggle-done'); gDone[id] = !gDone[id]; save('haman_done', gDone); render(); });
+  });
+  var twBtn = app.querySelector('[data-today-word-toggle]');
+  if(twBtn){ twBtn.addEventListener('click', function(){ vDone[todayWord.w] = !vDone[todayWord.w]; save('haman_vocab_done', vDone); render(); }); }
+  app.querySelectorAll('[data-cat]').forEach(function(el){
+    el.addEventListener('click', function(){ activeCat = el.getAttribute('data-cat'); render(); });
+  });
+  app.querySelectorAll('[data-vtoggle]').forEach(function(el){
+    el.addEventListener('click', function(){ el.closest('.vcard').classList.toggle('open'); });
+  });
+  app.querySelectorAll('[data-vdone]').forEach(function(el){
+    el.addEventListener('click', function(e){ e.stopPropagation(); var w = el.getAttribute('data-vdone'); vDone[w] = !vDone[w]; save('haman_vocab_done', vDone); render(); });
+  });
+  app.querySelectorAll('[data-qo]').forEach(function(el){
+    el.addEventListener('click', function(){ var q = +el.getAttribute('data-q'); if(quizAns[q]===undefined){ quizAns[q] = +el.getAttribute('data-qo'); render(); } });
+  });
+  var qr = app.querySelector('[data-qreset]');
+  if(qr){ qr.addEventListener('click', function(){ quizAns = {}; render(); }); }
+}
+if('serviceWorker' in navigator && location.protocol.indexOf('http')===0){ window.addEventListener('load', function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); }); }
+render();
+</script>
+</body>
+</html>
