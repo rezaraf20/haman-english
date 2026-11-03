@@ -615,7 +615,7 @@ function renderAccount(){
   if(!session){
     html += '<div class="daily-card" style="margin-top:6px"><p class="daily-usage">با ساخت حساب، تیک‌های گرامر و لغات، روز پیاپی و نمرهٔ آزمون‌هایت روی همهٔ دستگاه‌ها ذخیره می‌شود.</p>';
     html += '<input class="inp" id="a_name" placeholder="Name (optional)"><input class="inp" id="a_email" type="email" placeholder="Email"><input class="inp" id="a_pw" type="password" placeholder="Password (min 6)">';
-    html += '<button class="daily-btn" data-auth="in">ورود</button><button class="daily-btn done" style="margin-top:8px" data-auth="up">ساخت حساب جدید</button>';
+    html += '<button class="daily-btn" data-auth="in">ورود</button><button class="daily-btn done" style="margin-top:8px" data-auth="up">ساخت حساب جدید</button><button class="daily-btn done" style="margin-top:8px" data-auth="google">ورود با Google (Gmail)</button>';
     if(authMsg) html += '<div class="amsg">'+esc(authMsg)+'</div>';
     html += '</div>';
   } else {
@@ -846,6 +846,7 @@ function bind(){
     el.addEventListener('click', function(){
       var m = el.getAttribute('data-auth');
       if(m === 'in' || m === 'up') doAuth(m);
+      else if(m === 'google'){ location.href = SB_URL + '/auth/v1/authorize?provider=google&redirect_to=' + encodeURIComponent(location.origin + location.pathname); }
       else if(m === 'sync'){ authMsg = 'در حال همگام‌سازی...'; render(); pullMerge().then(function(){ authMsg = 'همگام‌سازی شد.'; render(); }); }
       else if(m === 'out'){ session = null; save('haman_session', null); quizHist = []; authMsg = 'خارج شدید.'; render(); }
     });
