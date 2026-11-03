@@ -101,6 +101,9 @@ header.top .row{display:flex;justify-content:space-between;align-items:flex-star
 .score{font-size:15px;font-weight:600;margin:18px 4px 12px}
 .lbl{font-size:12px;font-weight:600;color:var(--fg-mut);margin:12px 0 4px}
 .hook{font-size:14px;font-weight:600;background:rgba(201,138,44,.16);border-radius:8px;padding:8px 10px}
+.inp{width:100%;padding:11px 12px;border:1px solid var(--border);border-radius:10px;background:var(--card);color:var(--fg);font-family:inherit;font-size:14px;margin-bottom:8px;direction:ltr;text-align:left}
+.amsg{font-size:13px;color:var(--accent-fg);margin:8px 2px}
+.hrow{display:flex;justify-content:space-between;font-size:13.5px;padding:8px 2px;border-bottom:1px dashed var(--border)}
 footer{text-align:center;color:var(--fg-mut);font-size:12px;margin-top:32px}
 .hidden{display:none}
 </style>
@@ -526,10 +529,111 @@ var SPEAK26 = [
  {id:'p7',t:'۷) اپ یا وسیلهٔ مفید',items:['<b>Cue card:</b> Describe a useful app or gadget you use.','You should say: what it is, how you use it, why it is useful, how often you use it','طرح پاسخ: معرفی ← کاربرد روزمره ← مزیت ← عیب احتمالی.','عبارات مفید: user-friendly, convenient, indispensable, time-saving, rely on','Part 3 احتمالی: Are people too dependent on technology? | How will AI change daily life?','نکتهٔ نمره: حتماً یک نقطهٔ ضعف هم بگو؛ توازن نشانهٔ پختگی است.']},
  {id:'p8',t:'Part 1: موضوع‌های رایج ۲۰۲۶',items:['Work or Studies و Hometown تقریباً همیشه در Part 1 هستند.','Media & News: How do you usually get your news? | Do you think the media is trustworthy?','Technology: What gadget do you use most? | Do you use apps to study?','فرمول: پاسخ مستقیم + دلیل + مثال کوتاه؛ حداکثر ۳ جمله.','مثال: I mostly follow the news on my phone, because it is quick, although I try to check more than one source.']}
 ];
+var SB_URL = 'https://gchsfdnsmounxnetsawa.supabase.co';
+var SB_KEY = 'sb_publishable_GoA-LrYNcHmPrMA5EW-8Ug_GoBGTMEA';
+var session = load('haman_session', null);
+var authMsg = '';
+var quizHist = [];
+var syncTimer = null;
+function esc(t){ return String(t).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function sbFetch(path, opts, tok){
+  opts = opts || {};
+  var h = Object.assign({'apikey': SB_KEY, 'Content-Type': 'application/json'}, opts.headers || {});
+  if(tok) h['Authorization'] = 'Bearer ' + tok;
+  return fetch(SB_URL + path, {method: opts.method || 'GET', headers: h, body: opts.body ? JSON.stringify(opts.body) : undefined});
+}
+function setSession(r){
+  session = {access_token: r.access_token, refresh_token: r.refresh_token, expires_at: Math.floor(Date.now()/1000) + (r.expires_in || 3600), user: {id: r.user.id, email: r.user.email}};
+  save('haman_session', session);
+}
+async function getToken(){
+  if(!session) return null;
+  if(session.expires_at - 60 > Date.now()/1000) return session.access_token;
+  var r = await sbFetch('/auth/v1/token?grant_type=refresh_token', {method:'POST', body:{refresh_token: session.refresh_token}});
+  if(!r.ok){ session = null; save('haman_session', null); return null; }
+  setSession(await r.json());
+  return session.access_token;
+}
+function mergeDone(target, src){ if(!src) return; Object.keys(src).forEach(function(k){ if(src[k]) target[k] = true; }); }
+async function push(){
+  var t = await getToken(); if(!t) return;
+  await sbFetch('/rest/v1/progress', {method:'POST', headers:{'Prefer':'resolution=merge-duplicates'}, body:{user_id: session.user.id, data:{g: gDone, v: vDone, streak: streak}, updated_at: new Date().toISOString()}}, t);
+}
+function scheduleSync(){
+  if(!session) return;
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(function(){ push().catch(function(){}); }, 1500);
+}
+async function loadQuiz(){
+  var t = await getToken(); if(!t) return;
+  var r = await sbFetch('/rest/v1/quiz_results?select=score,total,created_at&order=created_at.desc&limit=10', {}, t);
+  if(r.ok) quizHist = await r.json();
+}
+async function pullMerge(){
+  try{
+    var t = await getToken(); if(!t){ render(); return; }
+    var r = await sbFetch('/rest/v1/progress?select=data', {}, t);
+    if(r.ok){
+      var rows = await r.json();
+      if(rows.length){ var d = rows[0].data || {}; mergeDone(gDone, d.g); mergeDone(vDone, d.v); streak = Math.max(streak, d.streak || 0); }
+    }
+    save('haman_done', gDone); save('haman_vocab_done', vDone); save('haman_streak', streak);
+    await push(); await loadQuiz();
+  }catch(e){}
+  render();
+}
+async function recordQuiz(score){
+  try{
+    var t = await getToken(); if(!t) return;
+    await sbFetch('/rest/v1/quiz_results', {method:'POST', body:{score: score, total: QUIZ.length}}, t);
+    await loadQuiz(); render();
+  }catch(e){}
+}
+async function doAuth(mode){
+  var email = (document.getElementById('a_email')||{}).value || '';
+  var pw = (document.getElementById('a_pw')||{}).value || '';
+  var name = (document.getElementById('a_name')||{}).value || '';
+  authMsg = '';
+  if(!email || pw.length < 6){ authMsg = 'ایمیل و رمز عبور (حداقل ۶ کاراکتر) را وارد کنید.'; render(); return; }
+  try{
+    var r, j;
+    if(mode === 'up'){
+      r = await sbFetch('/auth/v1/signup', {method:'POST', body:{email: email, password: pw, data:{name: name}}});
+    } else {
+      r = await sbFetch('/auth/v1/token?grant_type=password', {method:'POST', body:{email: email, password: pw}});
+    }
+    j = await r.json();
+    if(!r.ok){ authMsg = 'خطا: ' + (j.msg || j.error_description || j.message || 'ناموفق'); }
+    else if(j.access_token){ setSession(j); authMsg = 'وارد شدید.'; render(); await pullMerge(); return; }
+    else { authMsg = 'ثبت‌نام انجام شد. اگر ایمیل تأیید برایتان آمد، آن را تأیید کنید و سپس وارد شوید.'; }
+  }catch(e){ authMsg = 'اتصال به سرور برقرار نشد. (در نسخهٔ آرتیفکت Claude اتصال بیرونی مسدود است؛ از نسخهٔ GitHub Pages استفاده کنید.)'; }
+  render();
+}
+function renderAccount(){
+  var html = '<div class="section-title">حساب کاربری و ذخیرهٔ پیشرفت</div>';
+  if(!session){
+    html += '<div class="daily-card" style="margin-top:6px"><p class="daily-usage">با ساخت حساب، تیک‌های گرامر و لغات، روز پیاپی و نمرهٔ آزمون‌هایت روی همهٔ دستگاه‌ها ذخیره می‌شود.</p>';
+    html += '<input class="inp" id="a_name" placeholder="Name (optional)"><input class="inp" id="a_email" type="email" placeholder="Email"><input class="inp" id="a_pw" type="password" placeholder="Password (min 6)">';
+    html += '<button class="daily-btn" data-auth="in">ورود</button><button class="daily-btn done" style="margin-top:8px" data-auth="up">ساخت حساب جدید</button>';
+    if(authMsg) html += '<div class="amsg">'+esc(authMsg)+'</div>';
+    html += '</div>';
+  } else {
+    html += '<div class="daily-card" style="margin-top:6px"><div class="daily-eyebrow">وارد شده با</div><div class="daily-title" style="font-size:16px;direction:ltr;text-align:left">'+esc(session.user.email)+'</div>';
+    html += '<p class="daily-usage">پیشرفتت به‌صورت خودکار ذخیره می‌شود.</p>';
+    html += '<button class="daily-btn" data-auth="sync">همگام‌سازی همین حالا</button><button class="daily-btn done" style="margin-top:8px" data-auth="out">خروج</button>';
+    if(authMsg) html += '<div class="amsg">'+esc(authMsg)+'</div>';
+    html += '</div>';
+    html += '<div class="section-title">تاریخچهٔ نمرهٔ آزمون (۱۰ مورد آخر)</div><div class="daily-card" style="margin-top:0;padding:8px 16px">';
+    if(!quizHist.length) html += '<div class="hrow">هنوز آزمونی کامل نکرده‌ای.</div>';
+    quizHist.forEach(function(q){ html += '<div class="hrow"><span>'+q.score+' / '+q.total+'</span><span style="direction:ltr">'+esc(String(q.created_at).slice(0,10))+'</span></div>'; });
+    html += '</div>';
+  }
+  return html;
+}
 var quizAns = {};
 
 function load(key, fallback){ try{ var v = localStorage.getItem(key); return v===null? fallback : JSON.parse(v); }catch(e){ return fallback; } }
-function save(key, val){ try{ localStorage.setItem(key, JSON.stringify(val)); }catch(e){} }
+function save(key, val){ try{ localStorage.setItem(key, JSON.stringify(val)); }catch(e){} if(key==='haman_done'||key==='haman_vocab_done'||key==='haman_streak'){ scheduleSync(); } }
 
 function dayIndex(len){
   var d = new Date(); var start = new Date(d.getFullYear(),0,0);
@@ -700,10 +804,10 @@ function render(){
   html += '</div>';
   html += '<div class="progressbar"><div style="width:'+pct+'%"></div></div>';
   html += '<div class="progress-lbl">'+lbl+'</div>';
-  html += '<div class="tabbar"><button data-view="grammar" class="'+(view==='grammar'?'active':'')+'">گرامر</button><button data-view="vocab" class="'+(view==='vocab'?'active':'')+'">لغات</button><button data-view="y26" class="'+(view==='y26'?'active':'')+'">سؤال‌های ۲۰۲۶</button><button data-view="s26" class="'+(view==='s26'?'active':'')+'">Speaking ۲۰۲۶</button><button data-view="speaking" class="'+(view==='speaking'?'active':'')+'">اسپیکینگ</button><button data-view="rl" class="'+(view==='rl'?'active':'')+'">ریدینگ و لیسنینگ</button><button data-view="writing" class="'+(view==='writing'?'active':'')+'">رایتینگ</button><button data-view="phrases" class="'+(view==='phrases'?'active':'')+'">عبارات</button><button data-view="quiz" class="'+(view==='quiz'?'active':'')+'">آزمون</button><button data-view="tips" class="'+(view==='tips'?'active':'')+'">نکات آزمون</button></div>';
+  html += '<div class="tabbar"><button data-view="grammar" class="'+(view==='grammar'?'active':'')+'">گرامر</button><button data-view="vocab" class="'+(view==='vocab'?'active':'')+'">لغات</button><button data-view="y26" class="'+(view==='y26'?'active':'')+'">سؤال‌های ۲۰۲۶</button><button data-view="acct" class="'+(view==='acct'?'active':'')+'">حساب</button><button data-view="s26" class="'+(view==='s26'?'active':'')+'">Speaking ۲۰۲۶</button><button data-view="speaking" class="'+(view==='speaking'?'active':'')+'">اسپیکینگ</button><button data-view="rl" class="'+(view==='rl'?'active':'')+'">ریدینگ و لیسنینگ</button><button data-view="writing" class="'+(view==='writing'?'active':'')+'">رایتینگ</button><button data-view="phrases" class="'+(view==='phrases'?'active':'')+'">عبارات</button><button data-view="quiz" class="'+(view==='quiz'?'active':'')+'">آزمون</button><button data-view="tips" class="'+(view==='tips'?'active':'')+'">نکات آزمون</button></div>';
   html += '</header>';
   html += '<div class="wrap">';
-  html += view==='grammar' ? renderGrammar() : (view==='vocab' ? renderVocab() : (view==='s26' ? renderAcc('Speaking Part 2: موضوع‌های گزارش‌شده ۲۰۲۶', SPEAK26) : (view==='y26' ? renderAcc('موضوع‌های گزارش‌شده ۲۰۲۶ (Writing Task 2)', Y26) : (view==='speaking' ? renderAcc('راهنمای کامل Speaking', SPEAK) : (view==='rl' ? renderAcc('Reading و Listening', RL) : (view==='writing' ? renderWriting() : (view==='phrases' ? renderPhrases() : (view==='quiz' ? renderQuiz() : renderTips()))))))));
+  html += view==='grammar' ? renderGrammar() : (view==='vocab' ? renderVocab() : (view==='acct' ? renderAccount() : (view==='s26' ? renderAcc('Speaking Part 2: موضوع‌های گزارش‌شده ۲۰۲۶', SPEAK26) : (view==='y26' ? renderAcc('موضوع‌های گزارش‌شده ۲۰۲۶ (Writing Task 2)', Y26) : (view==='speaking' ? renderAcc('راهنمای کامل Speaking', SPEAK) : (view==='rl' ? renderAcc('Reading و Listening', RL) : (view==='writing' ? renderWriting() : (view==='phrases' ? renderPhrases() : (view==='quiz' ? renderQuiz() : renderTips())))))))));
   html += '<footer>Haman English &middot; ساخته‌شده برای مرور روزانه</footer>';
   html += '</div>';
   var sy = window.scrollY; app.innerHTML = html;
@@ -735,13 +839,22 @@ function bind(){
     el.addEventListener('click', function(e){ e.stopPropagation(); var w = el.getAttribute('data-vdone'); vDone[w] = !vDone[w]; save('haman_vocab_done', vDone); render(); });
   });
   app.querySelectorAll('[data-qo]').forEach(function(el){
-    el.addEventListener('click', function(){ var q = +el.getAttribute('data-q'); if(quizAns[q]===undefined){ quizAns[q] = +el.getAttribute('data-qo'); render(); } });
+    el.addEventListener('click', function(){ var q = +el.getAttribute('data-q'); if(quizAns[q]===undefined){ quizAns[q] = +el.getAttribute('data-qo'); render(); if(Object.keys(quizAns).length === QUIZ.length){ var sc = 0; QUIZ.forEach(function(x,i){ if(quizAns[i] === x.a) sc++; }); recordQuiz(sc); } } });
+  });
+  app.querySelectorAll('[data-auth]').forEach(function(el){
+    el.addEventListener('click', function(){
+      var m = el.getAttribute('data-auth');
+      if(m === 'in' || m === 'up') doAuth(m);
+      else if(m === 'sync'){ authMsg = 'در حال همگام‌سازی...'; render(); pullMerge().then(function(){ authMsg = 'همگام‌سازی شد.'; render(); }); }
+      else if(m === 'out'){ session = null; save('haman_session', null); quizHist = []; authMsg = 'خارج شدید.'; render(); }
+    });
   });
   var qr = app.querySelector('[data-qreset]');
   if(qr){ qr.addEventListener('click', function(){ quizAns = {}; render(); }); }
 }
-if('serviceWorker' in navigator && location.protocol.indexOf('http')===0){ window.addEventListener('load', function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); }); }
 render();
+if(session){ pullMerge(); }
+if('serviceWorker' in navigator && location.protocol.indexOf('http')===0){ window.addEventListener('load', function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); }); }
 </script>
 </body>
 </html>
