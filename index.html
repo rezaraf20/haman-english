@@ -599,7 +599,7 @@ async function doAuth(mode){
   try{
     var r, j;
     if(mode === 'up'){
-      r = await sbFetch('/auth/v1/signup', {method:'POST', body:{email: email, password: pw, data:{name: name}}});
+      r = await sbFetch('/auth/v1/signup?redirect_to=' + encodeURIComponent(location.origin + location.pathname), {method:'POST', body:{email: email, password: pw, data:{name: name}}});
     } else {
       r = await sbFetch('/auth/v1/token?grant_type=password', {method:'POST', body:{email: email, password: pw}});
     }
@@ -853,8 +853,23 @@ function bind(){
   var qr = app.querySelector('[data-qreset]');
   if(qr){ qr.addEventListener('click', function(){ quizAns = {}; render(); }); }
 }
+async function handleHash(){
+  var h = location.hash ? location.hash.slice(1) : ''; if(!h) return;
+  var p = {};
+  h.split('&').forEach(function(kv){ var a = kv.split('='); p[a[0]] = decodeURIComponent((a[1] || '').replace(/\+/g, ' ')); });
+  if(p.error_description){ authMsg = 'خطا: ' + p.error_description + ' | اگر قبلاً ثبت‌نام کرده‌اید، مستقیم وارد شوید.'; view = 'acct'; history.replaceState(null, '', location.pathname); render(); return; }
+  if(p.access_token){
+    try{
+      var r = await sbFetch('/auth/v1/user', {}, p.access_token);
+      if(r.ok){ var u = await r.json(); setSession({access_token: p.access_token, refresh_token: p.refresh_token, expires_in: +p.expires_in || 3600, user: u}); view = 'acct'; authMsg = 'ایمیل تأیید شد و وارد شدید.'; }
+    }catch(e){}
+    history.replaceState(null, '', location.pathname);
+    await pullMerge();
+  }
+}
 render();
 if(session){ pullMerge(); }
+handleHash();
 if('serviceWorker' in navigator && location.protocol.indexOf('http')===0){ window.addEventListener('load', function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); }); }
 </script>
 </body>
