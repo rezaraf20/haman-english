@@ -104,6 +104,7 @@ header.top .row{display:flex;justify-content:space-between;align-items:flex-star
 .inp{width:100%;padding:11px 12px;border:1px solid var(--border);border-radius:10px;background:var(--card);color:var(--fg);font-family:inherit;font-size:14px;margin-bottom:8px;direction:ltr;text-align:left}
 .amsg{font-size:13px;color:var(--accent-fg);margin:8px 2px}
 .hrow{display:flex;justify-content:space-between;font-size:13.5px;padding:8px 2px;border-bottom:1px dashed var(--border)}
+.acctbtn{border:none;background:var(--amber);color:#241505;font-family:inherit;font-size:13px;font-weight:700;border-radius:14px;padding:9px 13px;cursor:pointer;white-space:nowrap}
 footer{text-align:center;color:var(--fg-mut);font-size:12px;margin-top:32px}
 .hidden{display:none}
 </style>
@@ -800,7 +801,7 @@ function render(){
   var html = '';
   html += '<header class="top"><div class="row">';
   html += '<div class="brand">Haman English<small>مرور روزانه‌ی گرامر و لغات آیلتس</small></div>';
-  html += '<div class="streak"><div class="num">'+streak+'</div><div class="lbl">روز پیاپی</div></div>';
+  html += '<div style="display:flex;gap:8px;align-items:flex-start"><button class="acctbtn" data-view="acct">👤 '+(session?'حساب من':'ورود / ثبت‌نام')+'</button><div class="streak"><div class="num">'+streak+'</div><div class="lbl">روز پیاپی</div></div></div>';
   html += '</div>';
   html += '<div class="progressbar"><div style="width:'+pct+'%"></div></div>';
   html += '<div class="progress-lbl">'+lbl+'</div>';
