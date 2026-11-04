@@ -81,7 +81,7 @@ header.top .row{display:flex;justify-content:space-between;align-items:flex-star
 .vword .ipa{font-size:13px;color:var(--fg-mut);margin-top:2px}
 .vpos{font-size:11px;color:var(--teal-deep);background:rgba(46,110,107,.12);border-radius:6px;padding:2px 7px;flex:none}
 .vbody{max-height:0;overflow:hidden;transition:max-height .25s ease}
-.vcard.open .vbody{max-height:200px}
+.vcard.open .vbody{max-height:420px}
 .vbody-inner{padding-top:12px;border-top:1px dashed var(--border);margin-top:12px}
 .vfa{font-size:14.5px;margin:0 0 8px}
 .vex{direction:ltr;text-align:left;font-size:13.5px;color:var(--fg-mut);margin:0 0 10px}
@@ -105,6 +105,16 @@ header.top .row{display:flex;justify-content:space-between;align-items:flex-star
 .amsg{font-size:13px;color:var(--accent-fg);margin:8px 2px}
 .hrow{display:flex;justify-content:space-between;font-size:13.5px;padding:8px 2px;border-bottom:1px dashed var(--border)}
 .acctbtn{border:none;background:var(--amber);color:#241505;font-family:inherit;font-size:13px;font-weight:700;border-radius:14px;padding:9px 13px;cursor:pointer;white-space:nowrap}
+.avatar{flex:none;width:56px;height:56px;border-radius:50%;background:var(--amber);color:#241505;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stat{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px}
+.stat .n{font-size:22px;font-weight:700;color:var(--accent-fg);direction:ltr;text-align:right}
+.stat .l{font-size:12px;color:var(--fg-mut)}
+.bar{height:8px;border-radius:8px;background:var(--border);overflow:hidden;margin-top:4px}
+.bar>div{height:100%;background:var(--teal)}
+.pcat{margin:10px 0;font-size:13px}
+.pcat span{display:flex;justify-content:space-between}
+.parts{font-size:13px;background:rgba(46,110,107,.12);border-radius:8px;padding:8px 10px;margin:0 0 10px;line-height:1.8}
 footer{text-align:center;color:var(--fg-mut);font-size:12px;margin-top:32px}
 .hidden{display:none}
 </style>
@@ -533,6 +543,8 @@ var SPEAK26 = [
 var SB_URL = 'https://gchsfdnsmounxnetsawa.supabase.co';
 var SB_KEY = 'sb_publishable_GoA-LrYNcHmPrMA5EW-8Ug_GoBGTMEA';
 var session = load('haman_session', null);
+var prefs = load('haman_prefs', {});
+var qLocal = load('haman_qlocal', []);
 var authMsg = '';
 var quizHist = [];
 var syncTimer = null;
@@ -558,7 +570,7 @@ async function getToken(){
 function mergeDone(target, src){ if(!src) return; Object.keys(src).forEach(function(k){ if(src[k]) target[k] = true; }); }
 async function push(){
   var t = await getToken(); if(!t) return;
-  await sbFetch('/rest/v1/progress', {method:'POST', headers:{'Prefer':'resolution=merge-duplicates'}, body:{user_id: session.user.id, data:{g: gDone, v: vDone, streak: streak}, updated_at: new Date().toISOString()}}, t);
+  await sbFetch('/rest/v1/progress', {method:'POST', headers:{'Prefer':'resolution=merge-duplicates'}, body:{user_id: session.user.id, data:{g: gDone, v: vDone, streak: streak, p: prefs}, updated_at: new Date().toISOString()}}, t);
 }
 function scheduleSync(){
   if(!session) return;
@@ -576,14 +588,15 @@ async function pullMerge(){
     var r = await sbFetch('/rest/v1/progress?select=data', {}, t);
     if(r.ok){
       var rows = await r.json();
-      if(rows.length){ var d = rows[0].data || {}; mergeDone(gDone, d.g); mergeDone(vDone, d.v); streak = Math.max(streak, d.streak || 0); }
+      if(rows.length){ var d = rows[0].data || {}; mergeDone(gDone, d.g); mergeDone(vDone, d.v); streak = Math.max(streak, d.streak || 0); if(d.p){ prefs = Object.assign({}, d.p, prefs); } }
     }
-    save('haman_done', gDone); save('haman_vocab_done', vDone); save('haman_streak', streak);
+    save('haman_done', gDone); save('haman_vocab_done', vDone); save('haman_streak', streak); save('haman_prefs', prefs);
     await push(); await loadQuiz();
   }catch(e){}
   render();
 }
 async function recordQuiz(score){
+  qLocal.unshift({score: score, total: QUIZ.length, created_at: new Date().toISOString()}); qLocal = qLocal.slice(0, 20); save('haman_qlocal', qLocal); render();
   try{
     var t = await getToken(); if(!t) return;
     await sbFetch('/rest/v1/quiz_results', {method:'POST', body:{score: score, total: QUIZ.length}}, t);
@@ -610,31 +623,64 @@ async function doAuth(mode){
   }catch(e){ authMsg = 'اتصال به سرور برقرار نشد. (در نسخهٔ آرتیفکت Claude اتصال بیرونی مسدود است؛ از نسخهٔ GitHub Pages استفاده کنید.)'; }
   render();
 }
+function stat(n, l){ return '<div class="stat"><div class="n">'+n+'</div><div class="l">'+l+'</div></div>'; }
 function renderAccount(){
-  var html = '<div class="section-title">حساب کاربری و ذخیرهٔ پیشرفت</div>';
+  var all = TENSES.concat(TOPICS);
+  var gN = all.filter(function(t){ return gDone[t.id]; }).length;
+  var vN = VOCAB.filter(function(v){ return vDone[v.w]; }).length;
+  var pct = Math.round((gN + vN) / (all.length + VOCAB.length) * 100);
+  var lvl = pct < 10 ? 'شروع مسیر' : (pct < 35 ? 'در حال پیشرفت' : (pct < 65 ? 'سطح متوسط به بالا' : 'نزدیک هدف'));
+  var hist = (session && quizHist.length) ? quizHist : qLocal;
+  var avg = hist.length ? Math.round(hist.reduce(function(a, q){ return a + q.score / q.total; }, 0) / hist.length * 100) : 0;
+  var name = prefs.name || (session ? session.user.email.split('@')[0] : 'کاربر مهمان');
+  var html = '<div class="daily-card" style="margin-top:6px;display:flex;gap:14px;align-items:center"><div class="avatar">'+esc(name.charAt(0).toUpperCase())+'</div><div><div class="daily-title" style="font-size:18px;margin:0">'+esc(name)+'</div><div class="daily-usage" style="margin:2px 0 0">'+lvl+' &middot; '+pct+'% مسیر</div></div></div>';
+  html += '<div class="stats" style="margin-top:12px">'+stat(streak,'روز پیاپی')+stat(vN+' / '+VOCAB.length,'لغت یادگرفته')+stat(gN+' / '+all.length,'مبحث گرامر')+stat(hist.length ? avg+'%' : '-','میانگین آزمون ('+hist.length+' بار)')+'</div>';
+  html += '<div class="section-title">پیشرفت لغات به تفکیک دسته</div><div class="daily-card" style="margin-top:0;padding:6px 16px">';
+  CATS.forEach(function(c){
+    var tot = VOCAB.filter(function(v){ return v.cat === c[0]; });
+    var dn = tot.filter(function(v){ return vDone[v.w]; }).length;
+    html += '<div class="pcat"><span><b>'+c[1]+'</b><span style="direction:ltr">'+dn+' / '+tot.length+'</span></span><div class="bar"><div style="width:'+(tot.length ? Math.round(dn / tot.length * 100) : 0)+'%"></div></div></div>';
+  });
+  html += '</div>';
+  html += '<div class="section-title">هدف و برنامهٔ من</div><div class="daily-card" style="margin-top:0">';
+  html += '<div class="daily-eyebrow">نمرهٔ هدف</div><div class="chips" style="padding-top:2px">';
+  ['7','7.5','8','8.5'].forEach(function(b){ html += '<button class="chip '+(prefs.band===b?'active':'')+'" data-band="'+b+'">'+b+'</button>'; });
+  html += '</div>';
+  html += '<div class="daily-eyebrow" style="margin-top:10px">تاریخ آزمون</div><input class="inp" type="date" data-date value="'+esc(prefs.exam || '')+'">';
+  if(prefs.exam){
+    var days = Math.ceil((new Date(prefs.exam) - new Date()) / 86400000);
+    html += '<div class="amsg">'+(days > 0 ? days + ' روز تا آزمون باقی مانده است.' : (days === 0 ? 'آزمون امروز است. موفق باشی!' : 'تاریخ آزمون گذشته است.'))+'</div>';
+  }
+  html += '<div class="daily-eyebrow" style="margin-top:10px">نام نمایشی</div><input class="inp" id="p_name" placeholder="Name" value="'+esc(prefs.name || '')+'">';
+  html += '<button class="daily-btn done" data-auth="name">ذخیرهٔ نام</button></div>';
+  html += '<div class="section-title">نمرهٔ آزمون‌های اخیر</div><div class="daily-card" style="margin-top:0;padding:8px 16px">';
+  if(!hist.length) html += '<div class="hrow">هنوز آزمونی کامل نکرده‌ای.</div>';
+  hist.slice(0, 8).forEach(function(q){ html += '<div class="hrow"><span>'+q.score+' / '+q.total+'</span><span style="direction:ltr">'+esc(String(q.created_at).slice(0,10))+'</span></div>'; });
+  html += '</div>';
+  html += '<div class="section-title">حساب کاربری</div>';
   if(!session){
-    html += '<div class="daily-card" style="margin-top:6px"><p class="daily-usage">با ساخت حساب، تیک‌های گرامر و لغات، روز پیاپی و نمرهٔ آزمون‌هایت روی همهٔ دستگاه‌ها ذخیره می‌شود.</p>';
+    html += '<div class="daily-card" style="margin-top:0"><p class="daily-usage">با ساخت حساب، پیشرفت و نمره‌هایت روی همهٔ دستگاه‌ها ذخیره می‌شود. بدون حساب، داده‌ها فقط روی همین دستگاه می‌مانند.</p>';
     html += '<input class="inp" id="a_name" placeholder="Name (optional)"><input class="inp" id="a_email" type="email" placeholder="Email"><input class="inp" id="a_pw" type="password" placeholder="Password (min 6)">';
     html += '<button class="daily-btn" data-auth="in">ورود</button><button class="daily-btn done" style="margin-top:8px" data-auth="up">ساخت حساب جدید</button><button class="daily-btn done" style="margin-top:8px" data-auth="google">ورود با Google (Gmail)</button>';
     if(authMsg) html += '<div class="amsg">'+esc(authMsg)+'</div>';
     html += '</div>';
   } else {
-    html += '<div class="daily-card" style="margin-top:6px"><div class="daily-eyebrow">وارد شده با</div><div class="daily-title" style="font-size:16px;direction:ltr;text-align:left">'+esc(session.user.email)+'</div>';
+    html += '<div class="daily-card" style="margin-top:0"><div class="daily-eyebrow">وارد شده با</div><div class="daily-title" style="font-size:15px;direction:ltr;text-align:left">'+esc(session.user.email)+'</div>';
     html += '<p class="daily-usage">پیشرفتت به‌صورت خودکار ذخیره می‌شود.</p>';
-    html += '<button class="daily-btn" data-auth="sync">همگام‌سازی همین حالا</button><button class="daily-btn done" style="margin-top:8px" data-auth="out">خروج</button>';
+    html += '<button class="daily-btn" data-auth="sync">همگام‌سازی همین حالا</button><button class="daily-btn done" style="margin-top:8px" data-auth="out">خروج</button><button class="daily-btn done" style="margin-top:8px;color:var(--danger)" data-auth="wipe">حذف داده‌های ذخیره‌شده روی سرور</button>';
     if(authMsg) html += '<div class="amsg">'+esc(authMsg)+'</div>';
-    html += '</div>';
-    html += '<div class="section-title">تاریخچهٔ نمرهٔ آزمون (۱۰ مورد آخر)</div><div class="daily-card" style="margin-top:0;padding:8px 16px">';
-    if(!quizHist.length) html += '<div class="hrow">هنوز آزمونی کامل نکرده‌ای.</div>';
-    quizHist.forEach(function(q){ html += '<div class="hrow"><span>'+q.score+' / '+q.total+'</span><span style="direction:ltr">'+esc(String(q.created_at).slice(0,10))+'</span></div>'; });
     html += '</div>';
   }
   return html;
 }
+var EMO = {"sustainable": "♻️", "deforestation": "🌲", "emission": "🏭", "renewable": "☀️", "pollutant": "💨", "biodiversity": "🦋", "mitigate": "🛡️", "conservation": "🐼", "depletion": "📉", "habitat": "🏞️", "fossil fuel": "⛽", "carbon footprint": "👣", "ecosystem": "🌿", "extinction": "🦖", "drought": "🏜️", "curriculum": "📚", "literacy": "📖", "tuition": "💳", "rote learning": "🔁", "undergraduate": "🎓", "extracurricular": "⚽", "vocational": "🔧", "compulsory": "❗", "peer pressure": "👥", "scholarship": "🏅", "dropout": "🚪", "plagiarism": "📋", "innovative": "💡", "artificial intelligence": "🤖", "obsolete": "📼", "breakthrough": "🚀", "cybersecurity": "🔒", "automation": "⚙️", "ubiquitous": "📱", "digital divide": "🌐", "addictive": "🔄", "algorithm": "🧮", "gadget": "🎧", "data breach": "🔓", "privacy": "🤫", "virtual": "🕶️", "chronic": "⏳", "obesity": "⚖️", "sedentary": "🪑", "malnutrition": "🥣", "well-being": "😊", "epidemic": "🦠", "preventive": "💉", "life expectancy": "👴", "nutritious": "🥗", "vaccination": "💉", "pandemic": "🌍", "balanced diet": "🥦", "sanitation": "🚰", "diagnose": "🩺", "unemployment": "📭", "inflation": "📈", "subsidize": "🤝", "workforce": "👷", "entrepreneur": "💼", "revenue": "💰", "disparity": "↔️", "recession": "🏚️", "consumerism": "🛍️", "wage": "💵", "poverty": "🥺", "taxation": "🧾", "affordable": "🏷️", "offender": "🚔", "deterrent": "🚧", "surveillance": "📹", "juvenile": "🧒", "rehabilitation": "🩹", "legislation": "📜", "sentence": "⚖️", "prosecute": "👨‍⚖️", "petty crime": "👜", "burglary": "🏠", "fraud": "🎭", "community service": "🧹", "penalty": "🟨", "heritage": "🏛️", "diversity": "🌈", "urbanization": "🏙️", "generation gap": "👵", "discrimination": "🚫", "norm": "📏", "stereotype": "🧱", "marginalised": "🫥", "social cohesion": "🧩", "volunteer": "🙋", "inequality": "📊", "immigration": "🛂", "globalization": "🗺️", "outsource": "📦", "censorship": "🤐", "propaganda": "📢", "tabloid": "📰", "misinformation": "❓", "headline": "🔤", "bias": "🙈", "advertising": "📺", "viral": "🔥", "mainstream": "🌊", "accountable": "✅", "implement": "🛠️", "undermine": "⛏️", "constitute": "🏗️", "enhance": "⬆️", "hinder": "⛓️", "advocate": "📣", "inevitable": "🧲", "controversial": "💬", "detrimental": "☠️", "beneficial": "👍", "prevalent": "🌫️", "substantial": "🪨", "fundamental": "🔑", "phenomenon": "🌠", "trend": "〰️", "incentive": "🥕", "stimulate": "⚡", "contradict": "🙅", "outweigh": "🏋️", "tackle": "🤼", "viable": "🌱", "adverse": "⛈️", "outcome": "🏁", "priority": "1️⃣", "implication": "🔗", "mandatory": "📌", "curb": "🚦", "eradicate": "🧽", "commute": "🚌", "hectic": "🌀", "sibling": "👫", "neighbourhood": "🏘️", "cuisine": "🍲", "nostalgic": "📷", "spontaneous": "🎲", "work-life balance": "🧘", "hands-on": "🙌", "pastime": "🎨", "inspiring": "✨", "rewarding": "🏆", "teamwork": "🏐", "collaborate": "🧑‍🤝‍🧑", "turning point": "↪️", "gratitude": "🙏", "reliable": "🔩", "convenient": "🛋️", "user-friendly": "👆", "indispensable": "🧷", "hindsight": "🪞", "charm": "💫"};
+var PARTS = {"hindsight": "hind (پشت، عقب) + sight (دیدن) = «دیدن از پشت سر». یعنی بعد از اینکه اتفاقی افتاد، برمی‌گردی و می‌فهمی چه باید می‌کردی؛ پس «نگاه عمیق» نیست، «نگاه به گذشته با آگاهی امروز» است. ضدش foresight است (fore = جلو).", "hinder": "هم‌خانوادهٔ hind (عقب): hinder = عقب نگه داشتن، مانع شدن. با hindsight هم‌ریشه است.", "deforestation": "de- (برداشتن) + forest (جنگل) + -ation (فرایند) = فرایند برداشتن جنگل.", "renewable": "re- (دوباره) + new (نو) + -able (قابل) = قابل نوشدن.", "sustainable": "sustain (نگه داشتن) + -able (قابل) = قابل نگه‌داشتن و ادامه‌دار.", "biodiversity": "bio (زندگی) + diversity (تنوع) = تنوع زندگی.", "pollutant": "pollute (آلوده کردن) + -ant (عامل) = عامل آلودگی.", "emission": "e- (بیرون) + miss (فرستادن) + -ion = بیرون‌فرستادن (گاز).", "extracurricular": "extra (بیرون) + curricular (مربوط به برنامهٔ درسی) = خارج از برنامهٔ درسی.", "undergraduate": "under (زیر) + graduate (فارغ‌التحصیل) = هنوز زیر سطح فارغ‌التحصیلی.", "literacy": "ریشه از litera (حرف) + -acy (حالت) = توانایی کار با حروف، یعنی سواد.", "breakthrough": "break (شکستن) + through (عبور) = شکستن مانع و عبور از آن.", "cybersecurity": "cyber (فضای دیجیتال) + security (امنیت).", "automation": "auto (خود) + mation (از automatic) = خودکارسازی.", "sedentary": "ریشهٔ sed- یعنی نشستن (مثل sit) + -ary = نشسته و کم‌تحرک.", "malnutrition": "mal- (بد) + nutrition (تغذیه) = تغذیهٔ بد.", "well-being": "well (خوب) + being (بودن) = خوب بودن، تندرستی.", "epidemic": "epi (روی) + demos (مردم) = چیزی که روی مردم می‌افتد.", "pandemic": "pan (همه) + demic (مردم) = همه‌ی مردم را درگیر می‌کند.", "vaccination": "ریشه از vacca (گاو) لاتین؛ اولین واکسن از آبله‌ی گاوی ساخته شد.", "unemployment": "un- (نه) + employ (به کار گرفتن) + -ment = حالت به‌کار گرفته‌نشدن.", "subsidize": "sub- (زیر) + sidy (کمک) = کمک از زیر، یارانه دادن.", "workforce": "work (کار) + force (نیرو) = نیروی کار.", "entrepreneur": "از فرانسوی entre (میان) + prendre (گرفتن) = کسی که کار را برمی‌دارد.", "rehabilitation": "re- (دوباره) + habilit (توانا) + -ation = دوباره توانا کردن.", "legislation": "legis (قانون) + lation (آوردن) = آوردن قانون.", "offender": "offend (تجاوز کردن به) + -er (عامل) = کسی که قانون را نقض می‌کند.", "deterrent": "de- (دور) + terr (ترس) + -ent = چیزی که با ترس دور می‌کند.", "surveillance": "sur- (روی، بالا) + veill (مراقب بودن) + -ance = نگاه کردن از بالا.", "juvenile": "juven (جوان) + -ile = مربوط به جوانی.", "diversity": "di- (جدا) + vers (چرخیدن) = چرخیده به سمت‌های مختلف، پس تنوع.", "urbanization": "urban (شهری) + -ize (کردن) + -ation = شهری‌شدن.", "discrimination": "dis- (جدا) + crimin (تمیز دادن) + -ation = جدا کردن ناعادلانه.", "globalization": "global (جهانی) + -ize (کردن) + -ation = جهانی‌شدن.", "outsource": "out (بیرون) + source (منبع) = تأمین کار از بیرون شرکت.", "censorship": "censor (ممیز) + -ship (حالت) = عمل ممیزی.", "misinformation": "mis- (نادرست) + information (اطلاعات).", "propaganda": "هم‌ریشه با propagate (منتشر کردن)؛ تبلیغاتی که منتشر می‌شود.", "implement": "im- (در) + ple (پر کردن) + -ment = عملی کردن (پر کردن طرح).", "undermine": "under (زیر) + mine (حفر) = از زیر کندن، تضعیف کردن.", "constitute": "con- (با هم) + stitute (قرار دادن) = با هم گذاشتن، تشکیل دادن.", "advocate": "ad- (به سوی) + voc (صدا) = صدا زدن به سوی کسی، حمایت کردن.", "inevitable": "in- (نه) + evit (اجتناب) + -able = غیرقابل اجتناب.", "controversial": "contro- (علیه) + vers (چرخیدن) = بحثی که علیه هم می‌چرخد.", "beneficial": "bene (خوب) + fic (ساختن) + -ial = خوب‌ساز، مفید.", "prevalent": "pre- (پیش) + val (قدرت) = قدرتمند و فراگیر، رایج.", "substantial": "sub (زیر) + stant (ایستادن) = پایه‌دار و جدی.", "fundamental": "fundament (پایه) + -al = مربوط به پایه.", "implication": "im- (درون) + plic (تا کردن) = تاشده در درون، پیامد ضمنی.", "mandatory": "mand (فرمان) + -atory = فرمانی، الزامی.", "eradicate": "e- (بیرون) + radic (ریشه) = از ریشه درآوردن.", "contradict": "contra (خلاف) + dict (گفتن) = خلاف گفتن.", "outweigh": "out (فراتر) + weigh (وزن) = سنگین‌تر بودن از.", "outcome": "out (بیرون) + come (آمدن) = آنچه بیرون می‌آید، نتیجه.", "priority": "prior (پیش) + -ity = آنچه جلوتر است.", "adverse": "ad- (به سوی) + vers (چرخیدن) = چرخیده علیه ما، نامطلوب.", "viable": "vi (زندگی) + -able = قابل زنده ماندن، شدنی.", "collaborate": "col- (با هم) + labor (کار) + -ate = با هم کار کردن.", "turning point": "turning (چرخش) + point (نقطه) = نقطه‌ی چرخش.", "gratitude": "grat (خوشایند، سپاس) + -itude (حالت) = حالت سپاسگزاری.", "indispensable": "in- (نه) + dis- (جدا) + pens (وزن کردن) + -able = قابل کنار گذاشتن نیست.", "user-friendly": "user (کاربر) + friendly (دوستانه) = دوستانه با کاربر.", "hands-on": "hands (دست‌ها) + on (روی) = با دست روی کار.", "plagiarism": "ریشه از plagiarius (ربایندهٔ انسان) لاتین؛ ربودن نوشتهٔ دیگران.", "sanitation": "sanit (سلامت) + -ation = ایجاد سلامت عمومی.", "diagnose": "dia (از میان) + gnose (دانستن) = شناختن از میان نشانه‌ها.", "immigration": "im- (به درون) + migrate (کوچ کردن) + -tion = کوچ به درون کشور (emigrate = بیرون).", "inequality": "in- (نه) + equality (برابری).", "volunteer": "volunt (میل، اراده) + -eer = کسی که با میل خودش کار می‌کند.", "advertising": "ad (به سوی) + vert (چرخاندن) = توجه را به سوی چیزی چرخاندن.", "stereotype": "stereo (سخت، ثابت) + type (قالب) = قالب ثابت ذهنی.", "marginalised": "margin (حاشیه) + -al + -ise = به حاشیه رانده‌شده.", "social cohesion": "co- (با هم) + hes (چسبیدن) + -ion = به‌هم‌چسبیدگی اجتماعی.", "mainstream": "main (اصلی) + stream (جریان) = جریان اصلی.", "accountable": "account (حساب) + -able (قابل) = قابل حساب‌کشی.", "neighbourhood": "neighbour (همسایه) + -hood (حالت، جمع) = محلهٔ همسایگان.", "teamwork": "team (تیم) + work (کار).", "pastime": "pass (گذراندن) + time (وقت) = وسیله‌ای برای گذراندن وقت."};
+var CATEMO = {"env": "🌍", "edu": "🎓", "tech": "💻", "health": "🩺", "econ": "💰", "crime": "⚖️", "society": "👥", "media": "📰", "acad": "📘", "life": "🏠"};
+function emo(v){ return EMO[v.w] || CATEMO[v.cat] || '📘'; }
 var quizAns = {};
 
 function load(key, fallback){ try{ var v = localStorage.getItem(key); return v===null? fallback : JSON.parse(v); }catch(e){ return fallback; } }
-function save(key, val){ try{ localStorage.setItem(key, JSON.stringify(val)); }catch(e){} if(key==='haman_done'||key==='haman_vocab_done'||key==='haman_streak'){ scheduleSync(); } }
+function save(key, val){ try{ localStorage.setItem(key, JSON.stringify(val)); }catch(e){} if(key==='haman_done'||key==='haman_vocab_done'||key==='haman_streak'||key==='haman_prefs'){ scheduleSync(); } }
 
 function dayIndex(len){
   var d = new Date(); var start = new Date(d.getFullYear(),0,0);
@@ -727,8 +773,9 @@ function renderVocab(){
   var html = '';
   html += '<div class="daily-card">';
   html += '<div class="daily-eyebrow">کلمه امروز</div>';
-  html += '<h1 class="daily-title">'+todayWord.w+' <span style="font-weight:400;color:var(--fg-mut);font-size:14px">'+todayWord.ipa+'</span></h1>';
+  html += '<h1 class="daily-title">'+emo(todayWord)+' '+todayWord.w+' <span style="font-weight:400;color:var(--fg-mut);font-size:14px">'+todayWord.ipa+'</span></h1>';
   html += '<p class="daily-usage">'+todayWord.fa+' &middot; ('+todayWord.pos+'.)</p>';
+  if(PARTS[todayWord.w]) html += '<div class="parts">🧩 '+PARTS[todayWord.w]+'</div>';
   html += '<div class="vex" style="font-size:14px">'+todayWord.ex+'</div>';
   html += '<button class="daily-btn '+(vDone[todayWord.w]?'done':'')+'" data-today-word-toggle>'+(vDone[todayWord.w]?'\u2714 امروز رو یاد گرفتی':'یاد گرفتم، علامت بزن')+'</button>';
   html += '</div>';
@@ -744,10 +791,11 @@ function renderVocab(){
   list.forEach(function(v){
     html += '<div class="vcard" data-vcard="'+v.w+'">';
     html += '<div class="vhead" data-vtoggle="'+v.w+'">';
-    html += '<div class="vword"><div class="w">'+v.w+(vDone[v.w]?' \u2714':'')+'</div><div class="ipa">'+v.ipa+'</div></div>';
+    html += '<div class="vword"><div class="w">'+emo(v)+' '+v.w+(vDone[v.w]?' \u2714':'')+'</div><div class="ipa">'+v.ipa+'</div></div>';
     html += '<span class="vpos">'+v.pos+'.</span></div>';
     html += '<div class="vbody"><div class="vbody-inner">';
     html += '<p class="vfa">'+v.fa+'</p>';
+    if(PARTS[v.w]) html += '<div class="parts">🧩 '+PARTS[v.w]+'</div>';
     html += '<p class="vex">'+v.ex+'</p>';
     html += '<button class="mini-btn '+(vDone[v.w]?'done':'')+'" data-vdone="'+v.w+'">'+(vDone[v.w]?'\u2714 بلدم':'یاد گرفتم')+'</button>';
     html += '</div></div></div>';
@@ -801,11 +849,11 @@ function render(){
   var html = '';
   html += '<header class="top"><div class="row">';
   html += '<div class="brand">Haman English<small>مرور روزانه‌ی گرامر و لغات آیلتس</small></div>';
-  html += '<div style="display:flex;gap:8px;align-items:flex-start"><button class="acctbtn" data-view="acct">👤 '+(session?'حساب من':'ورود / ثبت‌نام')+'</button><div class="streak"><div class="num">'+streak+'</div><div class="lbl">روز پیاپی</div></div></div>';
+  html += '<div style="display:flex;gap:8px;align-items:flex-start"><button class="acctbtn" data-view="acct">👤 '+(session?'پروفایل':'ورود / ثبت‌نام')+'</button><div class="streak"><div class="num">'+streak+'</div><div class="lbl">روز پیاپی</div></div></div>';
   html += '</div>';
   html += '<div class="progressbar"><div style="width:'+pct+'%"></div></div>';
   html += '<div class="progress-lbl">'+lbl+'</div>';
-  html += '<div class="tabbar"><button data-view="grammar" class="'+(view==='grammar'?'active':'')+'">گرامر</button><button data-view="vocab" class="'+(view==='vocab'?'active':'')+'">لغات</button><button data-view="y26" class="'+(view==='y26'?'active':'')+'">سؤال‌های ۲۰۲۶</button><button data-view="acct" class="'+(view==='acct'?'active':'')+'">حساب</button><button data-view="s26" class="'+(view==='s26'?'active':'')+'">Speaking ۲۰۲۶</button><button data-view="speaking" class="'+(view==='speaking'?'active':'')+'">اسپیکینگ</button><button data-view="rl" class="'+(view==='rl'?'active':'')+'">ریدینگ و لیسنینگ</button><button data-view="writing" class="'+(view==='writing'?'active':'')+'">رایتینگ</button><button data-view="phrases" class="'+(view==='phrases'?'active':'')+'">عبارات</button><button data-view="quiz" class="'+(view==='quiz'?'active':'')+'">آزمون</button><button data-view="tips" class="'+(view==='tips'?'active':'')+'">نکات آزمون</button></div>';
+  html += '<div class="tabbar"><button data-view="grammar" class="'+(view==='grammar'?'active':'')+'">گرامر</button><button data-view="vocab" class="'+(view==='vocab'?'active':'')+'">لغات</button><button data-view="y26" class="'+(view==='y26'?'active':'')+'">سؤال‌های ۲۰۲۶</button><button data-view="acct" class="'+(view==='acct'?'active':'')+'">پروفایل</button><button data-view="s26" class="'+(view==='s26'?'active':'')+'">Speaking ۲۰۲۶</button><button data-view="speaking" class="'+(view==='speaking'?'active':'')+'">اسپیکینگ</button><button data-view="rl" class="'+(view==='rl'?'active':'')+'">ریدینگ و لیسنینگ</button><button data-view="writing" class="'+(view==='writing'?'active':'')+'">رایتینگ</button><button data-view="phrases" class="'+(view==='phrases'?'active':'')+'">عبارات</button><button data-view="quiz" class="'+(view==='quiz'?'active':'')+'">آزمون</button><button data-view="tips" class="'+(view==='tips'?'active':'')+'">نکات آزمون</button></div>';
   html += '</header>';
   html += '<div class="wrap">';
   html += view==='grammar' ? renderGrammar() : (view==='vocab' ? renderVocab() : (view==='acct' ? renderAccount() : (view==='s26' ? renderAcc('Speaking Part 2: موضوع‌های گزارش‌شده ۲۰۲۶', SPEAK26) : (view==='y26' ? renderAcc('موضوع‌های گزارش‌شده ۲۰۲۶ (Writing Task 2)', Y26) : (view==='speaking' ? renderAcc('راهنمای کامل Speaking', SPEAK) : (view==='rl' ? renderAcc('Reading و Listening', RL) : (view==='writing' ? renderWriting() : (view==='phrases' ? renderPhrases() : (view==='quiz' ? renderQuiz() : renderTips())))))))));
@@ -847,9 +895,21 @@ function bind(){
       var m = el.getAttribute('data-auth');
       if(m === 'in' || m === 'up') doAuth(m);
       else if(m === 'google'){ location.href = SB_URL + '/auth/v1/authorize?provider=google&redirect_to=' + encodeURIComponent(location.origin + location.pathname); }
+      else if(m === 'name'){ prefs.name = (document.getElementById('p_name') || {}).value || ''; save('haman_prefs', prefs); authMsg = ''; render(); }
+      else if(m === 'wipe'){
+        if(window.confirm('همهٔ پیشرفت و نمره‌های ذخیره‌شده روی سرور حذف شود؟ (داده‌های روی این دستگاه می‌مانند)')){
+          getToken().then(function(t){ if(!t) return; var id = session.user.id; return Promise.all([sbFetch('/rest/v1/progress?user_id=eq.'+id, {method:'DELETE'}, t), sbFetch('/rest/v1/quiz_results?user_id=eq.'+id, {method:'DELETE'}, t)]); }).then(function(){ quizHist = []; authMsg = 'داده‌های سرور حذف شد.'; render(); }).catch(function(){ authMsg = 'حذف انجام نشد.'; render(); });
+        }
+      }
       else if(m === 'sync'){ authMsg = 'در حال همگام‌سازی...'; render(); pullMerge().then(function(){ authMsg = 'همگام‌سازی شد.'; render(); }); }
       else if(m === 'out'){ session = null; save('haman_session', null); quizHist = []; authMsg = 'خارج شدید.'; render(); }
     });
+  });
+  app.querySelectorAll('[data-band]').forEach(function(el){
+    el.addEventListener('click', function(){ prefs.band = el.getAttribute('data-band'); save('haman_prefs', prefs); render(); });
+  });
+  app.querySelectorAll('[data-date]').forEach(function(el){
+    el.addEventListener('change', function(){ prefs.exam = el.value; save('haman_prefs', prefs); render(); });
   });
   var qr = app.querySelector('[data-qreset]');
   if(qr){ qr.addEventListener('click', function(){ quizAns = {}; render(); }); }
