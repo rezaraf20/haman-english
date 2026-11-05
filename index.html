@@ -115,6 +115,17 @@ header.top .row{display:flex;justify-content:space-between;align-items:flex-star
 .pcat{margin:10px 0;font-size:13px}
 .pcat span{display:flex;justify-content:space-between}
 .parts{font-size:13px;background:rgba(46,110,107,.12);border-radius:8px;padding:8px 10px;margin:0 0 10px;line-height:1.8}
+.wrap{padding-bottom:104px}
+.bnav{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--card);border-top:1px solid var(--border);padding-bottom:env(safe-area-inset-bottom,0px)}
+.bnav-in{display:flex;max-width:480px;margin:0 auto}
+.bnav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 2px 7px;border:none;background:transparent;color:var(--fg-mut);font-family:inherit;font-size:11px;font-weight:500;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.bnav button svg{width:22px;height:22px}
+.bnav button.on{color:var(--accent-fg);font-weight:700}
+.bnav button.on svg{stroke-width:2.2}
+.back{border:none;background:transparent;color:var(--accent-fg);font-family:inherit;font-size:13px;font-weight:600;padding:18px 2px 0;cursor:pointer}
+.hub{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.hubc{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:right;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;font-family:inherit;color:var(--fg);cursor:pointer}
+.hubc .hi{font-size:22px}.hubc b{font-size:14px}.hubc small{font-size:11.5px;color:var(--fg-mut);line-height:1.6}
 footer{text-align:center;color:var(--fg-mut);font-size:12px;margin-top:32px}
 .hidden{display:none}
 </style>
@@ -841,6 +852,24 @@ function renderQuiz(){
   return html;
 }
 
+var NAVS = [['grammar','گرامر'],['vocab','لغات'],['ielts','آیلتس'],['quiz','تست'],['acct','پروفایل']];
+var NAVICON = {"grammar": "<path d=\"M4 4.5A2.5 2.5 0 0 1 6.5 2H20v17H6.5A2.5 2.5 0 0 0 4 21.5z\"/><path d=\"M4 21.5v-17\"/>", "vocab": "<path d=\"M3 18 7.5 6 12 18M4.8 14h5.4\"/><circle cx=\"17\" cy=\"15\" r=\"3\"/><path d=\"M20 12v6\"/>", "ielts": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><circle cx=\"12\" cy=\"12\" r=\"5\"/><circle cx=\"12\" cy=\"12\" r=\"1.5\"/>", "quiz": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"m8 12.5 3 3 5-6\"/>", "acct": "<circle cx=\"12\" cy=\"8\" r=\"4\"/><path d=\"M4 21c0-4 4-6 8-6s8 2 8 6\"/>"};
+var SUBV = ['writing','phrases','tips','speaking','rl','s26','y26'];
+var HUB = [['writing','✍️','رایتینگ','Task 1 و 2، ساختار و عبارت‌ها'],['y26','📝','سؤال‌های ۲۰۲۶','موضوع‌های Writing گزارش‌شده'],['speaking','🎤','اسپیکینگ','Part 1 تا 3 و تلفظ'],['s26','🗣️','Speaking ۲۰۲۶','cue cardهای گزارش‌شده'],['rl','📖','ریدینگ و لیسنینگ','روش‌ها و تمرین'],['phrases','🔗','عبارات','collocation و phrasal verb'],['tips','💡','نکات آزمون','استراتژی و نمره‌دهی']];
+function navOf(v){ return (v==='grammar'||v==='vocab'||v==='quiz'||v==='acct') ? v : 'ielts'; }
+function bnav(){
+  var cur = navOf(view), h = '<nav class="bnav"><div class="bnav-in">';
+  NAVS.forEach(function(n){
+    h += '<button class="'+(cur===n[0]?'on':'')+'" data-view="'+n[0]+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+NAVICON[n[0]]+'</svg><span>'+n[1]+'</span></button>';
+  });
+  return h + '</div></nav>';
+}
+function backBtn(){ return SUBV.indexOf(view) >= 0 ? '<button class="back" data-view="ielts">&lsaquo; بازگشت به بخش آیلتس</button>' : ''; }
+function renderHub(){
+  var h = '<div class="section-title">بخش آیلتس</div><div class="hub">';
+  HUB.forEach(function(x){ h += '<button class="hubc" data-view="'+x[0]+'"><span class="hi">'+x[1]+'</span><b>'+x[2]+'</b><small>'+x[3]+'</small></button>'; });
+  return h + '</div>';
+}
 function render(){
   var gp = gProgress(), vp = vProgress();
   var pct = view==='vocab' ? vp.pct : gp.pct;
@@ -853,12 +882,12 @@ function render(){
   html += '</div>';
   html += '<div class="progressbar"><div style="width:'+pct+'%"></div></div>';
   html += '<div class="progress-lbl">'+lbl+'</div>';
-  html += '<div class="tabbar"><button data-view="grammar" class="'+(view==='grammar'?'active':'')+'">گرامر</button><button data-view="vocab" class="'+(view==='vocab'?'active':'')+'">لغات</button><button data-view="y26" class="'+(view==='y26'?'active':'')+'">سؤال‌های ۲۰۲۶</button><button data-view="acct" class="'+(view==='acct'?'active':'')+'">پروفایل</button><button data-view="s26" class="'+(view==='s26'?'active':'')+'">Speaking ۲۰۲۶</button><button data-view="speaking" class="'+(view==='speaking'?'active':'')+'">اسپیکینگ</button><button data-view="rl" class="'+(view==='rl'?'active':'')+'">ریدینگ و لیسنینگ</button><button data-view="writing" class="'+(view==='writing'?'active':'')+'">رایتینگ</button><button data-view="phrases" class="'+(view==='phrases'?'active':'')+'">عبارات</button><button data-view="quiz" class="'+(view==='quiz'?'active':'')+'">آزمون</button><button data-view="tips" class="'+(view==='tips'?'active':'')+'">نکات آزمون</button></div>';
   html += '</header>';
   html += '<div class="wrap">';
-  html += view==='grammar' ? renderGrammar() : (view==='vocab' ? renderVocab() : (view==='acct' ? renderAccount() : (view==='s26' ? renderAcc('Speaking Part 2: موضوع‌های گزارش‌شده ۲۰۲۶', SPEAK26) : (view==='y26' ? renderAcc('موضوع‌های گزارش‌شده ۲۰۲۶ (Writing Task 2)', Y26) : (view==='speaking' ? renderAcc('راهنمای کامل Speaking', SPEAK) : (view==='rl' ? renderAcc('Reading و Listening', RL) : (view==='writing' ? renderWriting() : (view==='phrases' ? renderPhrases() : (view==='quiz' ? renderQuiz() : renderTips())))))))));
+  html += backBtn() + (view==='ielts' ? renderHub() : (view==='grammar' ? renderGrammar() : (view==='vocab' ? renderVocab() : (view==='acct' ? renderAccount() : (view==='s26' ? renderAcc('Speaking Part 2: موضوع‌های گزارش‌شده ۲۰۲۶', SPEAK26) : (view==='y26' ? renderAcc('موضوع‌های گزارش‌شده ۲۰۲۶ (Writing Task 2)', Y26) : (view==='speaking' ? renderAcc('راهنمای کامل Speaking', SPEAK) : (view==='rl' ? renderAcc('Reading و Listening', RL) : (view==='writing' ? renderWriting() : (view==='phrases' ? renderPhrases() : (view==='quiz' ? renderQuiz() : renderTips())))))))))));
   html += '<footer>Haman English &middot; ساخته‌شده برای مرور روزانه</footer>';
   html += '</div>';
+  html += bnav();
   var sy = window.scrollY; app.innerHTML = html;
   bind(); window.scrollTo(0, sy);
 }
@@ -866,7 +895,7 @@ function render(){
 function bind(){
   var app = document.getElementById('app');
   app.querySelectorAll('[data-view]').forEach(function(el){
-    el.addEventListener('click', function(){ view = el.getAttribute('data-view'); render(); });
+    el.addEventListener('click', function(){ view = el.getAttribute('data-view'); render(); window.scrollTo(0, 0); });
   });
   app.querySelectorAll('[data-toggle]').forEach(function(el){
     el.addEventListener('click', function(){ el.closest('.card').classList.toggle('open'); });
