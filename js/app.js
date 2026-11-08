@@ -191,6 +191,7 @@ function renderGrammar(){
       html += '<div class="card-body"><div class="card-body-inner">';
       html += '<p class="usage">'+t.usage+'</p>';
       html += '<div class="ex-list">'+t.ex.map(exRow).join('')+'</div>';
+      html += deepHtml(t.id);
       html += '<button class="mini-btn '+(gDone[t.id]?'done':'')+'" data-toggle-done="'+t.id+'">'+(gDone[t.id]?'\u2714 تسلط دارم':'علامت به‌عنوان یادگرفته‌شده')+'</button>';
       html += '</div></div></div>';
     });
@@ -214,6 +215,7 @@ function renderGrammar(){
     });
     html += '</div>';
   });
+  html += renderAcc('برگهٔ تقلب و جدول‌های مرجع', REF);
   return html;
 }
 
