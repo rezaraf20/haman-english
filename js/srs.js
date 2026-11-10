@@ -17,9 +17,9 @@ NAVS.splice(2, 0, ['review', 'مرور']);
 NAVICON.review = '<path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/>';
 function navOf(v){ return (v==='grammar'||v==='vocab'||v==='quiz'||v==='acct'||v==='review') ? v : (v==='errors' ? 'review' : 'ielts'); }
 function bnav(){
-  var cur = navOf(view), dc = queueLen(), h = '<nav class="bnav"><div class="bnav-in">';
+  var cur = navOf(view), dc = queueLen(), h = '<nav class="bnav" aria-label="ناوبری اصلی"><div class="bnav-in">';
   NAVS.forEach(function(n){
-    h += '<button class="'+(cur===n[0]?'on':'')+'" data-view="'+n[0]+'">'+(n[0]==='review'&&dc?'<i class="bdg">'+dc+'</i>':'')+'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+NAVICON[n[0]]+'</svg><span>'+n[1]+'</span></button>';
+    h += '<button class="'+(cur===n[0]?'on':'')+'" data-view="'+n[0]+'" aria-current="'+(cur===n[0]?'page':'false')+'">'+(n[0]==='review'&&dc?'<i class="bdg">'+dc+'</i>':'')+'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+NAVICON[n[0]]+'</svg><span>'+n[1]+'</span></button>';
   });
   return h + '</div></nav>';
 }
@@ -94,8 +94,8 @@ async function srsSync(){
 async function logoutClean(){
   authMsg = 'در حال خروج...'; render();
   try{ await push(); await srsSync(); }catch(e){}
-  ['haman_session','haman_done','haman_vocab_done','haman_streak','haman_prefs','haman_qlocal','haman_last_visit','hm_srs','hm_err','hm_days','hm_wsub','hm_wdraft','hm_spk'].forEach(function(k){ try{ localStorage.removeItem(k); }catch(e){} });
-  try{ indexedDB.deleteDatabase('hm_audio'); }catch(e){} try{ W = []; WD = {}; SH = []; }catch(e){}
+  ['haman_session','haman_done','haman_vocab_done','haman_streak','haman_prefs','haman_qlocal','haman_last_visit','hm_srs','hm_err','hm_days','hm_wsub','hm_wdraft','hm_spk','hm_ex','hm_plan'].forEach(function(k){ try{ localStorage.removeItem(k); }catch(e){} });
+  try{ indexedDB.deleteDatabase('hm_audio'); }catch(e){} try{ W = []; WD = {}; SH = []; EXS = {}; PL = {}; ex = null; }catch(e){}
   session = null; gDone = {}; vDone = {}; prefs = {}; qLocal = []; quizHist = []; srs = {}; errs = []; days = {}; srsDirty = {}; errDirty = {}; rv = null; streak = 1;
   authMsg = 'خارج شدید. داده‌های این دستگاه برای حفظ حریم خصوصی پاک شد.'; render();
 }
@@ -181,7 +181,7 @@ function renderErrors(){
         x.o.forEach(function(o, j){ var c = ''; if(qr.pick !== undefined){ if(j === x.a) c = ' ok'; else if(j === qr.pick) c = ' bad'; } h += '<button class="opt2'+c+'" data-rv="qpick" data-id="'+e.id+'" data-o="'+j+'">'+o+'</button>'; });
         if(qr.pick !== undefined) h += '<div class="vfa">'+x.e+'</div><button class="mini" data-rv="qclose">بستن</button>';
       } else h += '<div class="vfa">پاسخ تو: '+esc(e.ua)+' ← درست: '+esc(e.ca)+'</div><div class="vfa">'+esc(e.ex)+'</div><button class="mini" data-rv="qretry" data-id="'+e.id+'">حل دوباره</button>';
-    } else if(e.area === 'writing' || e.area === 'speaking'){ h += '<div class="ex" style="margin-top:6px">'+esc(e.prompt || '')+'</div><div class="vfa">'+esc(e.ex || '')+(e.ua ? ' · '+esc(e.ua) : '')+'</div>'; } else h += '<div class="ex" style="margin-top:6px"><b>'+esc(e.item)+'</b> ('+esc(e.ex || '')+')</div><div class="vfa">پاسخ تو: '+esc(e.ua)+' ← درست: '+esc(e.ca)+'</div>'+(VMAP[e.item] ? '<button class="mini" data-rv="errword" data-w="'+esc(e.item)+'">تمرین این لغت</button>' : '');
+    } else if(e.area === 'writing' || e.area === 'speaking' || e.area === 'exercise'){ h += '<div class="ex" style="margin-top:6px">'+esc(e.prompt || '')+'</div><div class="vfa">'+(e.area === 'exercise' ? 'پاسخ تو: '+esc(e.ua)+' ← درست: '+esc(e.ca)+' · ' : '')+esc(e.ex || '')+(e.area !== 'exercise' && e.ua ? ' · '+esc(e.ua) : '')+'</div>'; } else h += '<div class="ex" style="margin-top:6px"><b>'+esc(e.item)+'</b> ('+esc(e.ex || '')+')</div><div class="vfa">پاسخ تو: '+esc(e.ua)+' ← درست: '+esc(e.ca)+'</div>'+(VMAP[e.item] ? '<button class="mini" data-rv="errword" data-w="'+esc(e.item)+'">تمرین این لغت</button>' : '');
     h += '</div>';
   });
   return h + '</div>';
