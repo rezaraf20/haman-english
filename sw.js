@@ -1,5 +1,5 @@
-const CACHE = 'haman-english-v14';
-const CORE = ['./', 'index.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'css/app.css', 'css/srs.css', 'css/fonts.css', 'fonts/Vazirmatn-NL.woff2', 'js/data.js', 'js/app.js', 'js/srs.js', 'js/lab.js', 'js/grammar2.js', 'js/boot.js'];
+const CACHE = 'haman-english-v15';
+const CORE = ['./', 'index.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'css/app.css', 'css/srs.css', 'css/fonts.css', 'fonts/Vazirmatn-NL.woff2', 'js/data.js', 'js/app.js', 'js/srs.js', 'js/lab.js', 'js/grammar2.js', 'js/exercise.js', 'js/boot.js'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(CORE))); self.skipWaiting(); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k))))); self.clients.claim(); });
 self.addEventListener('fetch', e => {
