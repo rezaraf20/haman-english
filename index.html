@@ -4,21 +4,25 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Haman English</title>
-<link rel="stylesheet" href="css/fonts.css?v=13">
-<link rel="stylesheet" href="css/app.css?v=13">
-<link rel="stylesheet" href="css/srs.css?v=13">
+<link rel="stylesheet" href="css/fonts.css?v=16">
+<link rel="stylesheet" href="css/app.css?v=16">
+<link rel="stylesheet" href="css/srs.css?v=16">
+<link rel="stylesheet" href="css/ui.css?v=16">
+<link rel="icon" href="icon-192.png">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#12213B">
 <link rel="apple-touch-icon" href="icon-192.png">
 </head>
 <body>
 <div id="app"></div>
-<script src="js/data.js?v=13"></script>
-<script src="js/app.js?v=13"></script>
-<script src="js/srs.js?v=13"></script>
-<script src="js/lab.js?v=13"></script>
-<script src="js/grammar2.js?v=13"></script>
-<script src="js/exercise.js?v=13"></script>
-<script src="js/boot.js?v=13"></script>
+<script src="js/data.js?v=16"></script>
+<script src="js/app.js?v=16"></script>
+<script src="js/srs.js?v=16"></script>
+<script src="js/lab.js?v=16"></script>
+<script src="js/grammar2.js?v=16"></script>
+<script src="js/exercise.js?v=16"></script>
+<script src="js/ui.js?v=16"></script>
+<script src="js/boot.js?v=16"></script>
+<script>if('serviceWorker' in navigator && location.protocol.indexOf('http')===0){ window.addEventListener('load', function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); }); }</script>
 </body>
 </html>
