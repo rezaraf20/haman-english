@@ -326,14 +326,14 @@ function render(){
   var app = document.getElementById('app');
   var html = '';
   html += '<header class="top"><div class="row">';
-  html += '<div class="brand">Haman English<small>مرور روزانه‌ی گرامر و لغات آیلتس</small></div>';
+  html += '<div class="brand"><svg class="brandlogo" width="26" height="26" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#C98A2C"/><path d="M9 9v14M23 9v14M9 16h14" stroke="#12213B" stroke-width="3" stroke-linecap="round"/></svg>Haman English<small>مرور روزانه‌ی گرامر و لغات آیلتس</small></div>';
   html += '<div style="display:flex;gap:8px;align-items:flex-start"><button class="acctbtn" data-view="acct">👤 '+(session?'پروفایل':'ورود / ثبت‌نام')+'</button><div class="streak"><div class="num">'+streak+'</div><div class="lbl">روز پیاپی</div></div></div>';
   html += '</div>';
   html += '<div class="progressbar"><div style="width:'+pct+'%"></div></div>';
   html += '<div class="progress-lbl">'+lbl+'</div>';
   html += '</header>';
   html += '<div class="wrap">';
-  html += backBtn() + (view==='wlab' ? renderWLab() : (view==='slab' ? renderSLab() : (view==='review' ? renderReview() : (view==='errors' ? renderErrors() : (view==='ielts' ? renderHub() : (view==='grammar' ? renderGrammar() : (view==='vocab' ? renderVocab() : (view==='acct' ? renderAccount() : (view==='s26' ? renderAcc('Speaking Part 2: موضوع‌های گزارش‌شده ۲۰۲۶', SPEAK26) : (view==='y26' ? renderAcc('موضوع‌های گزارش‌شده ۲۰۲۶ (Writing Task 2)', Y26) : (view==='speaking' ? renderAcc('راهنمای کامل Speaking', SPEAK) : (view==='rl' ? renderAcc('Reading و Listening', RL) : (view==='writing' ? renderWriting() : (view==='phrases' ? renderPhrases() : (view==='quiz' ? renderQuiz() : renderTips())))))))))))))));
+  html += backBtn() + (view==='today' ? renderToday() : (view==='wlab' ? renderWLab() : (view==='slab' ? renderSLab() : (view==='review' ? renderReview() : (view==='errors' ? renderErrors() : (view==='ielts' ? renderHub() : (view==='grammar' ? renderGrammar() : (view==='vocab' ? renderVocab() : (view==='acct' ? renderAccount() : (view==='s26' ? renderAcc('Speaking Part 2: موضوع‌های گزارش‌شده ۲۰۲۶', SPEAK26) : (view==='y26' ? renderAcc('موضوع‌های گزارش‌شده ۲۰۲۶ (Writing Task 2)', Y26) : (view==='speaking' ? renderAcc('راهنمای کامل Speaking', SPEAK) : (view==='rl' ? renderAcc('Reading و Listening', RL) : (view==='writing' ? renderWriting() : (view==='phrases' ? renderPhrases() : (view==='quiz' ? renderQuiz() : renderTips()))))))))))))))));
   html += '<footer>Haman English &middot; ساخته‌شده برای مرور روزانه</footer>';
   html += '</div>';
   html += bnav();
